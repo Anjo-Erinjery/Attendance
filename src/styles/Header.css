@@ -1,0 +1,57 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222;
+  padding: 20px 40px;
+  color: white;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-btn {
+  background-color: #fff;
+  color: #222;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.login-container {
+  position: relative;
+}
+
+.login-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  padding: 10px 0;
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.login-dropdown a {
+  display: block;
+  padding: 10px 20px;
+  color: #222;
+  text-decoration: none;
+}
