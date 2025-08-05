@@ -22,17 +22,12 @@ const PrincipalLogin: React.FC = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        console.log('Login successful:', data);
-        console.log('Redirecting to dashboard...');
-        navigate('/Dash');
+        navigate('/dash');
       } else {
         setError(data.message || 'Login failed');
-        console.error('Login failed:', data.message || 'Unknown error');
-        console.error('Response status:', response.status);
       }
     } catch (error) {
       setError('Network error');
-      console.error('Network error:', error);
     }
   };
 
