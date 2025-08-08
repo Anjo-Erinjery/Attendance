@@ -5,10 +5,9 @@ import Hero from './components/Hero';
 import News from './components/News';
 import Footer from './components/Footer';
 import HODLogin from './auth/HODLogin';
-// import PrincipalLogin from './auth/PrincipalLogin';
+
 import Dash from './pages/Dash';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
-import Dashboard from './components/Dashboard';
 
 
 const App: React.FC = () => {
@@ -27,7 +26,7 @@ const App: React.FC = () => {
         
         {/* Login routes */}
         <Route path="/login" element={<HODLogin />} />
-        {/* <Route path="/principal-login" element={<PrincipalLogin />} /> */}
+        
         
         {/* Protected dashboard route */}
         <Route path="/Dash" element={

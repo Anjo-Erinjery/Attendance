@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '../components/Header';
 import Dashboard from '../components/Dashboard'; // Assuming this is the HOD Dashboard
 import Footer from '../components/Footer';
-import PrincipalDashboard from '../components/PrincipalDash'; // Import PrincipalDashboard directly
+import PrincipalDashboard from '../components/PrincipalDashboard'; // Import PrincipalDashboard directly
 import { useAuthStore } from '../store/authStore'; // Import useAuthStore to get user role
 
 const Dash: React.FC = () => {
