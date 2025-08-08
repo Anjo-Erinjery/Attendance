@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthState, User, LoginCredentials, AuthResponse } from '../types/auth.types';
 
+// Define the API base URL. This should match your backend server's address.
+// It's good practice to use an environment variable for this in a real application.
+const API_BASE_URL = 'http://localhost:3001/api'; 
+
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
@@ -21,8 +25,8 @@ export const useAuthStore = create<AuthStore>()(
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true });
         try {
-          // Mock API call - replace with actual API endpoint
-          const response = await fetch('/api/auth/login', {
+          // Use the absolute API_BASE_URL for the fetch call
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -31,7 +35,9 @@ export const useAuthStore = create<AuthStore>()(
           });
 
           if (!response.ok) {
-            throw new Error('Login failed');
+            // Attempt to parse error message from response if available
+            const errorData = await response.json().catch(() => ({ message: 'Unknown login error' }));
+            throw new Error(errorData.message || 'Login failed');
           }
 
           const data: AuthResponse = await response.json();
@@ -42,8 +48,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
-        } catch (error) {
+        } catch (error: any) {
           set({ isLoading: false });
+          // Re-throw the error so the calling component (HODLogin.tsx) can catch and display it
           throw error;
         }
       },

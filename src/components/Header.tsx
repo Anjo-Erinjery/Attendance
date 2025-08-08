@@ -40,8 +40,8 @@ const Header: React.FC = () => {
           {showDropdown && (
             <div className="login-dropdown" id="login-dropdown-menu">
               {/* Links inside the dropdown */}
-              <Link to="/login" className="dropdown-link">HOD Login</Link>
-              <Link to="/principal-login" className="dropdown-link">Principal Login</Link>
+              <Link to="/login" className="dropdown-link"> Login</Link>
+              {/* <Link to="/principal-login" className="dropdown-link">Principal Login</Link> */}
             </div>
           )}
         </div>
