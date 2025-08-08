@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
-<<<<<<< HEAD
-import '../styles/Login.css'; // ✅ This is relative and correct
-
-=======
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
->>>>>>> origin/principal
 
 const HODLogin: React.FC = () => {
   const [email, setEmail] = useState('');
