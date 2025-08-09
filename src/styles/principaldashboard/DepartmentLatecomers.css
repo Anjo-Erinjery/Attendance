@@ -1,0 +1,164 @@
+/* src/styles/principaldashboard/DepartmentLatecomers.css */
+
+.latecomers-container {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    font-family: 'Inter', sans-serif;
+    color: #333333;
+}
+
+.latecomers-header {
+    display: flex;
+    justify-content: space-between; /* Space out elements */
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.back-button {
+    background-color: #666666;
+    color: #ffffff;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.back-button:hover { background-color: #555555; transform: translateY(-1px); }
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #222222;
+    margin: 0;
+    flex-grow: 1; /* Allows title to take available space */
+    text-align: center; /* Center title */
+}
+
+/* Sort Menu Styles */
+.sort-menu-container {
+    position: relative;
+    display: inline-block; /* Aligns with header items */
+}
+
+.menu-icon-button {
+    background-color: #f0f0f0;
+    color: #555555;
+    padding: 0.75rem 1rem;
+    border: 1px solid #cccccc;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1; /* Ensures icon is centered */
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.menu-icon-button:hover { background-color: #e0e0e0; border-color: #bbbbbb; }
+
+.sort-options-dropdown {
+    position: absolute;
+    top: 100%; /* Position below the button */
+    right: 0; /* Align to the right of the button */
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    min-width: 180px;
+    margin-top: 0.5rem; /* Space between button and dropdown */
+}
+
+.sort-button {
+    background-color: transparent; /* No background by default */
+    color: #555555;
+    padding: 0.75rem 1rem;
+    border: none; /* No border for dropdown buttons */
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.15s ease-in-out;
+    width: 100%; /* Full width in dropdown */
+}
+
+.sort-button:hover {
+    background-color: #f5f5f5; /* Light hover background */
+    color: #333333;
+}
+
+.sort-button.active {
+    background-color: #e0e0e0; /* Active background */
+    color: #333333;
+    font-weight: 700;
+}
+
+/* Messages & Table */
+.error-message {
+    background-color: #ffe0e0; color: #cc0000; border: 1px solid #ffaaaa;
+    padding: 1rem; border-radius: 0.25rem; margin-bottom: 1.5rem; font-weight: 500;
+}
+.loading-message, .no-data-message {
+    text-align: center; padding: 2rem; color: #666666; font-size: 1.1rem;
+}
+.students-table-container {
+    overflow-x: auto; margin-top: 1.5rem; border: 1px solid #e0e0e0;
+    border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+table { width: 100%; border-collapse: collapse; }
+table th, table td {
+    text-align: left; padding: 1rem; border-bottom: 1px solid #f0f0f0;
+}
+table th {
+    background-color: #f8f8f8; font-size: 0.85rem; font-weight: 600;
+    color: #555555; text-transform: uppercase; letter-spacing: 0.05em;
+}
+table td { font-size: 0.9rem; color: #444444; }
+table tbody tr:last-child td { border-bottom: none; }
+table tbody tr:hover { background-color: #fcfcfc; }
+.late-today { font-weight: bold; color: #cc0000; }
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .latecomers-container { padding: 1rem; margin: 1rem auto; }
+    .latecomers-header { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+    .page-title { font-size: 1.5rem; flex-basis: 100%; text-align: center; }
+    .back-button, .sort-menu-container { flex-grow: 1; max-width: 48%; }
+    .sort-menu-container { text-align: right; }
+    .sort-options-dropdown {
+        top: calc(100% + 10px); /* Adjust top for space from button */
+        right: 0;
+        left: auto; /* Ensure it stays right-aligned */
+        width: 100%; /* Take full width below button */
+        box-sizing: border-box; /* Include padding/border in width */
+    }
+    
+    table thead { display: none; } /* Hide table headers */
+    table, tbody, tr, td { display: block; width: 100%; }
+    table tr {
+        margin-bottom: 0.75rem; border: 1px solid #e0e0e0;
+        border-radius: 0.5rem; padding: 0.75rem; background-color: #ffffff;
+    }
+    table td {
+        text-align: right; padding-left: 50%; position: relative; border: none;
+        padding-bottom: 0.25rem; padding-top: 0.25rem;
+    }
+    table td::before {
+        content: attr(data-label); position: absolute; left: 0.75rem;
+        width: calc(50% - 1.5rem); padding-right: 10px; white-space: nowrap;
+        text-align: left; font-weight: 600; color: #666666;
+    }
+    table td:first-child { padding-top: 0.75rem; }
+    table td:last-child { border-bottom: none; padding-bottom: 0.75rem; }
+}

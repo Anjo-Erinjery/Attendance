@@ -1,4 +1,4 @@
-/* src/styles/PrincipalDashboard.css */
+/* src/styles/principal-dashboard/PrincipalDashboard.css */
 
 /* --- Global & Base Styles --- */
 body {
@@ -126,12 +126,12 @@ body {
     transform: translateY(20px);
 }
 
-/* Animation delay for cards */
+/* Animation delay for cards (adjusted for fewer cards) */
 .dashboard-summary-grid .summary-card:nth-child(1) { animation-delay: 0.1s; }
 .dashboard-summary-grid .summary-card:nth-child(2) { animation-delay: 0.15s; }
 .dashboard-summary-grid .summary-card:nth-child(3) { animation-delay: 0.2s; }
 .dashboard-summary-grid .summary-card:nth-child(4) { animation-delay: 0.25s; }
-
+.dashboard-summary-grid .summary-card:nth-child(5) { animation-delay: 0.3s; }
 
 .summary-card:hover {
     transform: translateY(-5px);
@@ -160,7 +160,7 @@ body {
     padding-bottom: 0.75rem;
 }
 
-.chart-container-gauge { /* For Gauge Charts (Attendance/Absenteeism Rate) */
+.chart-container-gauge { /* For Gauge Charts (Non-Latecomers/Latecomers Rate) */
     width: 100%;
     height: 120px;
     display: flex;
@@ -169,7 +169,7 @@ body {
     margin-top: 0.5rem;
 }
 
-.chart-container-large { /* For Horizontal Bar Chart (Attendance by Department) */
+.chart-container-large { /* For Horizontal Bar Chart (Latecomers by Department) */
     width: 100%;
     height: 350px;
     margin-top: 1rem;
@@ -216,18 +216,20 @@ body {
     fill: #333333; /* Dark grey */
 }
 
-/* Bar colors for charts */
-/* Default fill for BarChart bars and RadialBar */
-.recharts-bar-rectangle {
-    fill: #666666; /* Medium grey for bars */
+/* RadialBar specific fills (override default recharts colors) */
+.recharts-radial-bar-active[fill="#8884d8"] { /* Target for Non-Latecomers Rate */
+    fill: #666666 !important; /* Neutral grey for "good" performance */
+}
+.recharts-radial-bar-active[fill="#dc3545"] { /* Target for Latecomers Rate */
+    fill: #333333 !important; /* Darker grey for "late" performance */
+}
+.recharts-radial-bar-background {
+    fill: #e0e0e0 !important; /* Light grey for gauge background */
 }
 
-/* Specific fill for Attendance Rate Gauge (can be slightly different grey) */
-.recharts-radial-bar-background {
-    fill: #e0e0e0; /* Light grey for background of gauge */
-}
-.recharts-radial-bar-active {
-    fill: #888888; /* Slightly darker grey for active part of gauge */
+/* BarChart bars fill */
+.recharts-bar-rectangle {
+    fill: #666666 !important; /* Neutral grey for bars in Latecomers by Department chart */
 }
 
 
@@ -241,7 +243,7 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
     margin-bottom: 1.5rem;
     animation: fadeInUp 0.6s ease-out forwards;
-    animation-delay: 0.3s;
+    animation-delay: 0.35s; /* Adjusted delay */
     opacity: 0;
     transform: translateY(20px);
 }
@@ -250,7 +252,7 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     color: #333333;
-    border-bottom: 1px solid #eeeeee; /* Lighter border */
+    border-bottom: 1px solid #eeeeee;
     padding-bottom: 0.75rem;
     margin-bottom: 1.25rem;
 }
@@ -265,7 +267,7 @@ body {
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
     animation: fadeInUp 0.6s ease-out forwards;
-    animation-delay: 0.4s;
+    animation-delay: 0.4s; /* Adjusted delay */
     opacity: 0;
     transform: translateY(20px);
 }
@@ -274,7 +276,7 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     color: #333333;
-    border-bottom: 1px solid #eeeeee; /* Lighter border */
+    border-bottom: 1px solid #eeeeee;
     padding-bottom: 0.75rem;
     margin-bottom: 1.25rem;
 }
