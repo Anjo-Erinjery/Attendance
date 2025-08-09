@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import News from './components/News';
-import Footer from './components/Footer';
-import HODLogin from './auth/HODLogin';
-import PrincipalLogin from './auth/PrincipalLogin';
+import Header from './components/HomePage/Header';
+import Hero from './components/HomePage/Hero';
+import News from './components/HomePage/News';
+import Footer from './components/HomePage/Footer';
+import Login from './auth/Login';
+
 import Dash from './pages/Dash';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
@@ -25,8 +25,8 @@ const App: React.FC = () => {
         } />
         
         {/* Login routes */}
-        <Route path="/login" element={<HODLogin />} />
-        <Route path="/principal-login" element={<PrincipalLogin />} />
+        <Route path="/Login" element={<Login />} />
+        
         
         {/* Protected dashboard route */}
         <Route path="/Dash" element={

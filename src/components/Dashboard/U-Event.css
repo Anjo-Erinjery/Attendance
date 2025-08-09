@@ -1,0 +1,11 @@
+.list{
+    display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding: 5px;
+
+}
+
+.all{       
+    padding-left: 250px;
+}

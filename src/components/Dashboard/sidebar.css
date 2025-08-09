@@ -1,0 +1,84 @@
+/* ====== Container for the whole sidebar ====== */
+.sidebar-container {
+  position: fixed; /* Sticks to the side of the screen */
+  top: 0;
+  left: 0;
+  height: 100vh; /* Full height of the viewport */
+  background-color: #f5f5f5; /* Light gray background */
+  color: #333; /* Dark gray text */
+  transition: width 0.3s ease; /* Smooth width change */
+  overflow: hidden; /* Hide content when collapsed */
+  z-index: 1000; /* Stay above other content */
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); /* Soft right shadow */
+}
+
+/* ====== Sidebar width when expanded ====== */
+.sidebar-container.open {
+  width: 220px;
+}
+
+/* ====== Sidebar width when collapsed ====== */
+.sidebar-container.closed {
+  width: 60px;
+}
+
+/* ====== Toggle button (usually top-right in sidebar) ====== */
+.toggle-button {
+  background-color: transparent;
+  color: #666;
+  border: none;
+  font-size: 20px;
+  padding: 10px;
+  cursor: pointer;
+  width: 100%;
+  text-align: right;
+}
+
+/* ====== Sidebar list navigation items ====== */
+.sidebar {
+  list-style-type: none; /* No bullets */
+  padding: 0;
+  margin: 20px 0;
+}
+
+/* ====== Individual list item spacing ====== */
+.sidebar li {
+  margin: 10px 0;
+}
+
+/* ====== Sidebar navigation buttons ====== */
+.sidebar button {
+  background: none;
+  border: none;
+  color: #333;
+  padding: 10px 20px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s ease;
+}
+
+/* ====== Hover effect for navigation buttons ====== */
+.sidebar button:hover {
+  background-color: #e0e0e0; /* Light hover effect */
+}
+
+/* ====== 'New Event' button at the bottom of the sidebar ====== */
+.sidebar-container > button {
+  margin: 20px;
+  width: calc(100% - 40px); /* Account for side margins */
+  background-color: #dcdcdc; /* Neutral gray background */
+  color: #333;
+  border: none;
+  padding: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+/* ====== Hover effect for 'New Event' button ====== */
+.sidebar-container > button:hover {
+  background-color: #bfbfbf;
+}
