@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 import { useAuthStore } from '../store/authStore'; // Import the auth store
 
-const HODLogin: React.FC = () => {
+const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -54,4 +54,4 @@ const HODLogin: React.FC = () => {
   );
 };
 
-export default HODLogin;
+export default Login;

@@ -1,7 +1,7 @@
 import React from 'react';
 
 // The CSS file is imported here
-import '../styles/Header.css';
+import '../../styles/Header.css';
 
 const Header: React.FC = () => {
 

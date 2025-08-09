@@ -1,8 +1,8 @@
 import React from 'react';
-import Header from '../components/Header';
-import Dashboard from '../components/Dashboard'; // Assuming this is the HOD Dashboard
-import Footer from '../components/Footer';
-import PrincipalDashboard from '../components/PrincipalDashboard'; // Import PrincipalDashboard directly
+import Header from '../components/HomePage/Header';
+import HODDashboard from '../pages/HODDashboard'; // Assuming this is the HOD Dashboard
+import Footer from '../components/HomePage/Footer';
+import PrincipalDashboard from '../pages/PrincipalDashboard'; // Import PrincipalDashboard directly
 import { useAuthStore } from '../store/authStore'; // Import useAuthStore to get user role
 
 const Dash: React.FC = () => {
@@ -14,7 +14,7 @@ const Dash: React.FC = () => {
   // Determine which dashboard to render based on the user's role
   const renderDashboard = () => {
     if (user?.role === 'HOD') {
-      return <Dashboard />; // Render the HOD Dashboard
+      return <HODDashboard />; // Render the HOD Dashboard
     } else if (user?.role === 'Principal') {
       return <PrincipalDashboard />; // Render the Principal Dashboard
     }
