@@ -1,0 +1,26 @@
+.news {
+  padding: 60px 40px;
+  background-color: #fff;
+}
+
+.news h2 {
+  font-size: 32px;
+  margin-bottom: 30px;
+}
+
+.news-card {
+  background-color: #fafafa;
+  padding: 20px;
+  border-left: 6px solid #555;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.news-card h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.news-card p {
+  font-size: 16px;
+  line-height: 1.6;
+}
