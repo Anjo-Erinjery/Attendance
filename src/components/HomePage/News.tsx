@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/News.css';
+import '../../styles/News.css';
 
 const News: React.FC = () => (
   <section className="news">
