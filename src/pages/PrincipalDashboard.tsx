@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import {
     ResponsiveContainer,
     BarChart,
@@ -12,9 +13,9 @@ import {
     RadialBar,
     PolarAngleAxis
 } from 'recharts';
-import '../styles/PrincipalDashboard.css'; // Ensure this CSS file is correctly linked
+import '../styles/principaldashboard/PrincipalDashboard.css'; // Corrected import path
 
-// Define interfaces for API responses
+// Define interfaces for API responses relevant to late attendance
 interface TotalStudentsCount {
     totalStudentsAcrossDepartments: number;
 }
@@ -22,62 +23,32 @@ interface TotalStudentsCount {
 interface DailyAttendanceSummary {
     presentStudents: number;
     totalStudentsToday: number;
+    lateStudentsToday: number; // Crucial for late attendance focus
 }
 
-interface DepartmentAttendance {
+interface LatecomersByDepartment {
     department: string;
-    attendanceRate: string; // e.g., "95%"
-    totalStudents: number;
-}
-
-// NEW INTERFACES for student-centric data from new APIs
-interface TotalStudentAbsences {
-    totalStudentAbsences: number;
-}
-
-interface StudentLeaveTypes {
-    sickLeaves: number;
-    otherLeaves: number;
-}
-
-interface PreapprovedStudentLeaves {
-    preapprovedStudentLeaves: number;
-}
-
-interface UnscheduledStudentAbsences {
-    unscheduledStudentAbsences: number;
-}
-
-interface StudentsOnProbation {
-    studentsOnProbation: number;
+    lateCount: number;
+    totalStudentsInDept: number;
 }
 
 const PrincipalDashboard: React.FC = () => {
-    // States for data fetched from APIs
+    const navigate = useNavigate(); // Initialize useNavigate for navigation
+
+    // States for data fetched from relevant APIs
     const [totalStudentsCount, setTotalStudentsCount] = useState<TotalStudentsCount>({ totalStudentsAcrossDepartments: 0 });
     const [dailyAttendanceSummary, setDailyAttendanceSummary] = useState<DailyAttendanceSummary>({
         presentStudents: 0,
-        totalStudentsToday: 0
+        totalStudentsToday: 0,
+        lateStudentsToday: 0
     });
-    const [departmentAttendance, setDepartmentAttendance] = useState<DepartmentAttendance[]>([]);
-
-    // States for NEW student-centric data from newly created APIs
-    const [totalStudentAbsences, setTotalStudentAbsences] = useState<TotalStudentAbsences>({ totalStudentAbsences: 0 });
-    const [studentLeaveTypes, setStudentLeaveTypes] = useState<StudentLeaveTypes>({ sickLeaves: 0, otherLeaves: 0 });
-    const [preapprovedStudentLeaves, setPreapprovedStudentLeaves] = useState<PreapprovedStudentLeaves>({ preapprovedStudentLeaves: 0 });
-    const [unscheduledStudentAbsences, setUnscheduledStudentAbsences] = useState<UnscheduledStudentAbsences>({ unscheduledStudentAbsences: 0 });
-    const [studentsOnProbation, setStudentsOnProbation] = useState<StudentsOnProbation>({ studentsOnProbation: 0 });
+    const [latecomersByDepartment, setLatecomersByDepartment] = useState<LatecomersByDepartment[]>([]);
+    const [selectedDepartment, setSelectedDepartment] = useState<string>('All'); // State to track selected department in filter
 
     // Loading states for each data fetch operation
     const [isLoadingTotalStudents, setIsLoadingTotalStudents] = useState(true);
     const [isLoadingDailyAttendance, setIsLoadingDailyAttendance] = useState(true);
-    const [isLoadingDepartmentAttendance, setIsLoadingDepartmentAttendance] = useState(true);
-    // New loading states for new APIs
-    const [isLoadingTotalStudentAbsences, setIsLoadingTotalStudentAbsences] = useState(true);
-    const [isLoadingStudentLeaveTypes, setIsLoadingStudentLeaveTypes] = useState(true);
-    const [isLoadingPreapprovedStudentLeaves, setIsLoadingPreapprovedStudentLeaves] = useState(true);
-    const [isLoadingUnscheduledStudentAbsences, setIsLoadingUnscheduledStudentAbsences] = useState(true);
-    const [isLoadingStudentsOnProbation, setIsLoadingStudentsOnProbation] = useState(true);
+    const [isLoadingLatecomersByDepartment, setIsLoadingLatecomersByDepartment] = useState(true);
 
     // Error state for displaying fetch errors
     const [error, setError] = useState<string | null>(null);
@@ -90,7 +61,7 @@ const PrincipalDashboard: React.FC = () => {
         const fetchData = async () => {
             setIsLoadingTotalStudents(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/all-students-count`);
+                const response = await fetch(`${API_BASE_URL}/api/total-students-count`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data: TotalStudentsCount = await response.json();
                 setTotalStudentsCount(data);
@@ -104,7 +75,7 @@ const PrincipalDashboard: React.FC = () => {
         fetchData();
     }, []);
 
-    // --- Fetch Daily Attendance Summary (for overall percentage and Present Students Today) ---
+    // --- Fetch Daily Attendance Summary (including late count) ---
     useEffect(() => {
         const fetchData = async () => {
             setIsLoadingDailyAttendance(true);
@@ -123,159 +94,82 @@ const PrincipalDashboard: React.FC = () => {
         fetchData();
     }, []);
 
-    // --- Fetch Department Attendance (for horizontal bar chart) ---
+    // --- Fetch Latecomers by Department (for horizontal bar chart) ---
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoadingDepartmentAttendance(true);
+            setIsLoadingLatecomersByDepartment(true);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/department-attendance`);
+                const response = await fetch(`${API_BASE_URL}/api/latecomers-by-department`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data: DepartmentAttendance[] = await response.json();
-                setDepartmentAttendance(data);
+                const data: LatecomersByDepartment[] = await response.json();
+                setLatecomersByDepartment(data);
             } catch (err: any) {
-                console.error("Failed to fetch department attendance:", err);
-                setError(`Failed to load department attendance: ${err.message}`);
+                console.error("Failed to fetch latecomers by department:", err);
+                setError(`Failed to load latecomers by department: ${err.message}`);
             } finally {
-                setIsLoadingDepartmentAttendance(false);
+                setIsLoadingLatecomersByDepartment(false);
             }
         };
         fetchData();
     }, []);
 
-    // --- NEW API FETCH: Total Student Absences ---
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoadingTotalStudentAbsences(true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/total-student-absences`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data: TotalStudentAbsences = await response.json();
-                setTotalStudentAbsences(data);
-            } catch (err: any) {
-                console.error("Failed to fetch total student absences:", err);
-                setError(`Failed to load total student absences: ${err.message}`);
-            } finally {
-                setIsLoadingTotalStudentAbsences(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    // --- NEW API FETCH: Student Leave Types (Sick vs Other) ---
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoadingStudentLeaveTypes(true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/student-leave-types`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data: StudentLeaveTypes = await response.json();
-                setStudentLeaveTypes(data);
-            } catch (err: any) {
-                console.error("Failed to fetch student leave types:", err);
-                setError(`Failed to load student leave types: ${err.message}`);
-            } finally {
-                setIsLoadingStudentLeaveTypes(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    // --- NEW API FETCH: Pre-approved Student Leaves ---
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoadingPreapprovedStudentLeaves(true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/preapproved-student-leaves`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data: PreapprovedStudentLeaves = await response.json();
-                setPreapprovedStudentLeaves(data);
-            } catch (err: any) {
-                console.error("Failed to fetch pre-approved student leaves:", err);
-                setError(`Failed to load pre-approved student leaves: ${err.message}`);
-            } finally {
-                setIsLoadingPreapprovedStudentLeaves(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    // --- NEW API FETCH: Unscheduled Student Absences ---
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoadingUnscheduledStudentAbsences(true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/unscheduled-student-absences`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data: UnscheduledStudentAbsences = await response.json();
-                setUnscheduledStudentAbsences(data);
-            } catch (err: any) {
-                console.error("Failed to fetch unscheduled student absences:", err);
-                setError(`Failed to load unscheduled student absences: ${err.message}`);
-            } finally {
-                setIsLoadingUnscheduledStudentAbsences(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    // --- NEW API FETCH: Students on Academic Probation ---
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoadingStudentsOnProbation(true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/students-on-probation`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data: StudentsOnProbation = await response.json();
-                setStudentsOnProbation(data);
-            } catch (err: any) {
-                console.error("Failed to fetch students on probation:", err);
-                setError(`Failed to load students on probation: ${err.message}`);
-            } finally {
-                setIsLoadingStudentsOnProbation(false);
-            }
-        };
-        fetchData();
-    }, []);
+    // Handle department filter change and navigate to the new page
+    const handleDepartmentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const dept = event.target.value;
+        setSelectedDepartment(dept); // Update selected department state
+        if (dept !== 'All') {
+            // Navigate to the new DepartmentLatecomers page with the selected department name
+            navigate(`/department-latecomers/${dept}`);
+        }
+        // If 'All' is selected, the current dashboard view remains,
+        // as this page focuses on overall and department-level summaries.
+    };
 
 
-    // Calculate overall daily attendance percentage
-    const overallDailyAttendancePercentage = dailyAttendanceSummary.totalStudentsToday > 0
-        ? parseFloat(((dailyAttendanceSummary.presentStudents / dailyAttendanceSummary.totalStudentsToday) * 100).toFixed(2))
+    // Calculate Non-Latecomers Rate (students on time)
+    const nonLatecomersRate = dailyAttendanceSummary.totalStudentsToday > 0
+        ? parseFloat((((dailyAttendanceSummary.totalStudentsToday - dailyAttendanceSummary.lateStudentsToday) / dailyAttendanceSummary.totalStudentsToday) * 100).toFixed(2))
         : 0;
 
-    // Calculate Absenteeism Rate (based on daily attendance summary)
-    const absenteeismRate = dailyAttendanceSummary.totalStudentsToday > 0
-        ? parseFloat((((dailyAttendanceSummary.totalStudentsToday - dailyAttendanceSummary.presentStudents) / dailyAttendanceSummary.totalStudentsToday) * 100).toFixed(2))
+    // Calculate Latecomers Rate
+    const latecomersRate = dailyAttendanceSummary.totalStudentsToday > 0
+        ? parseFloat(((dailyAttendanceSummary.lateStudentsToday / dailyAttendanceSummary.totalStudentsToday) * 100).toFixed(2))
         : 0;
 
-    // Data for Attendance Rate Gauge Chart
-    const attendanceGaugeData = [{
-        name: 'Attendance Rate',
-        value: overallDailyAttendancePercentage,
-        fill: '#8884d8' // This fill color will be overridden by CSS for minimal theme
+    // Data for Non-Latecomers Rate Gauge Chart
+    const nonLatecomersGaugeData = [{
+        name: 'Non-Latecomers Rate',
+        value: nonLatecomersRate,
+        fill: '#666666' // Neutral grey for non-latecomers (good)
     }];
 
-    // Data for Absenteeism Rate Gauge Chart
-    const absenteeismGaugeData = [{
-        name: 'Absenteeism Rate',
-        value: absenteeismRate,
-        fill: '#dc3545' // This fill color will be overridden by CSS for minimal theme
+    // Data for Latecomers Rate Gauge Chart
+    const latecomersGaugeData = [{
+        name: 'Latecomers Rate',
+        value: latecomersRate,
+        fill: '#333333' // Darker grey/black for latecomers (implies negative)
     }];
 
-    // Prepare department attendance data for the horizontal bar chart
-    // Sort by attendance rate descending for better visualization, as in the image
-    const departmentChartData = [...departmentAttendance].sort((a, b) =>
-        parseFloat(b.attendanceRate.replace('%', '')) - parseFloat(a.attendanceRate.replace('%', ''))
-    ).map(dept => ({
+    // Prepare latecomers by department data for the horizontal bar chart
+    // NOW USING RAW LATECOUNTS FOR THE BAR CHART
+    const latecomersChartData = [...latecomersByDepartment].sort((a, b) => {
+        // Sort by late count descending for visualization
+        return b.lateCount - a.lateCount;
+    }).map(dept => ({
         department: dept.department,
-        attendance: parseFloat(dept.attendanceRate.replace('%', ''))
+        lateCount: dept.lateCount // Using lateCount directly
     }));
+
+    // Dynamically calculate the maximum late count for the XAxis domain
+    const maxLateCount = Math.max(...latecomersChartData.map(d => d.lateCount), 0);
+    // Set a buffer for the XAxis domain, e.g., 10% more than max, or a minimum of 10 if max is very small
+    const xAxisDomainMax = maxLateCount > 0 ? Math.ceil(maxLateCount * 1.1) : 10;
 
 
     return (
         <div className="principal-dashboard">
             <header className="dashboard-header">
-                <h1 className="dashboard-title">Principal Dashboard</h1>
+                <h1 className="dashboard-title">Principal Dashboard (Late Attendance)</h1>
                 <div className="header-actions">
                     {/* Icons can be added here if needed, e.g., refresh, settings */}
                 </div>
@@ -300,9 +194,10 @@ const PrincipalDashboard: React.FC = () => {
                 </div>
                 <div className="filter-box">
                     <label htmlFor="departments">Departments</label>
-                    <select id="departments">
-                        <option>All</option>
-                        {departmentAttendance.map(dept => (
+                    {/* Attach onChange handler and value to the select element */}
+                    <select id="departments" onChange={handleDepartmentChange} value={selectedDepartment}>
+                        <option value="All">All</option> {/* Value 'All' will prevent navigation */}
+                        {latecomersByDepartment.map(dept => (
                             <option key={dept.department} value={dept.department}>{dept.department}</option>
                         ))}
                     </select>
@@ -310,9 +205,9 @@ const PrincipalDashboard: React.FC = () => {
             </section>
 
             <section className="dashboard-summary-grid">
-                {/* Summary Cards - Student-centric data */}
+                {/* Summary Cards - Student-centric data, focused on late attendance */}
                 <div className="summary-card">
-                    <h3 className="card-label">Total Students</h3>
+                    <h3 className="card-label">Total Students Enrolled</h3>
                     {isLoadingTotalStudents ? (
                         <p className="card-value loading">...</p>
                     ) : (
@@ -321,41 +216,7 @@ const PrincipalDashboard: React.FC = () => {
                 </div>
 
                 <div className="summary-card">
-                    <h3 className="card-label">Total Student Absences</h3>
-                    {isLoadingTotalStudentAbsences ? (
-                        <p className="card-value loading">...</p>
-                    ) : (
-                        <p className="card-value">{totalStudentAbsences.totalStudentAbsences}</p>
-                    )}
-                </div>
-
-                <div className="summary-card">
-                    <h3 className="card-label">Sick vs. Other Leaves</h3>
-                    {isLoadingStudentLeaveTypes ? (
-                        <p className="card-value loading">...</p>
-                    ) : (
-                        <>
-                            <p className="card-value-small">{studentLeaveTypes.sickLeaves} <span className="card-sub-label">Sick</span></p>
-                            <p className="card-value-small">{studentLeaveTypes.otherLeaves} <span className="card-sub-label">Other</span></p>
-                        </>
-                    )}
-                </div>
-
-                {/* This card replaces the "Employee Work Location Breakdown" and is removed */}
-
-                <div className="summary-card">
-                    <h3 className="card-label">Pre-approved Student Leaves</h3>
-                    {isLoadingPreapprovedStudentLeaves ? (
-                        <p className="card-value loading">...</p>
-                    ) : (
-                        <p className="card-value">{preapprovedStudentLeaves.preapprovedStudentLeaves}</p>
-                    )}
-                </div>
-
-                {/* "Overtime Hours" card is removed */}
-
-                <div className="summary-card">
-                    <h3 className="card-label">Present Students Today</h3>
+                    <h3 className="card-label">Students Present Today</h3>
                     {isLoadingDailyAttendance ? (
                         <p className="card-value loading">...</p>
                     ) : (
@@ -364,24 +225,24 @@ const PrincipalDashboard: React.FC = () => {
                 </div>
 
                 <div className="summary-card">
-                    <h3 className="card-label">Unscheduled Student Absences</h3>
-                    {isLoadingUnscheduledStudentAbsences ? (
+                    <h3 className="card-label">Latecomers Today</h3>
+                    {isLoadingDailyAttendance ? (
                         <p className="card-value loading">...</p>
                     ) : (
-                        <p className="card-value">{unscheduledStudentAbsences.unscheduledStudentAbsences}</p>
+                        <p className="card-value">{dailyAttendanceSummary.lateStudentsToday}</p>
                     )}
                 </div>
 
-                {/* Attendance Gauges */}
+                {/* Non-Latecomers Rate Gauge */}
                 <div className="summary-card chart-card">
-                    <h3 className="card-label">Attendance Rate</h3>
+                    <h3 className="card-label">Non-Latecomers Rate</h3>
                     <div className="chart-container-gauge">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadialBarChart
                                 innerRadius="70%"
                                 outerRadius="90%"
                                 barSize={10}
-                                data={attendanceGaugeData}
+                                data={nonLatecomersGaugeData}
                                 startAngle={225}
                                 endAngle={-45}
                             >
@@ -408,22 +269,23 @@ const PrincipalDashboard: React.FC = () => {
                                     dominantBaseline="middle"
                                     className="gauge-label"
                                 >
-                                    {overallDailyAttendancePercentage}%
+                                    {nonLatecomersRate}%
                                 </text>
                             </RadialBarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
+                {/* Latecomers Rate Gauge */}
                 <div className="summary-card chart-card">
-                    <h3 className="card-label">Absenteeism Rate</h3>
+                    <h3 className="card-label">Latecomers Rate</h3>
                     <div className="chart-container-gauge">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadialBarChart
                                 innerRadius="70%"
                                 outerRadius="90%"
                                 barSize={10}
-                                data={absenteeismGaugeData}
+                                data={latecomersGaugeData}
                                 startAngle={225}
                                 endAngle={-45}
                             >
@@ -450,47 +312,45 @@ const PrincipalDashboard: React.FC = () => {
                                     dominantBaseline="middle"
                                     className="gauge-label"
                                 >
-                                    {absenteeismRate}%
+                                    {latecomersRate}%
                                 </text>
                             </RadialBarChart>
                         </ResponsiveContainer>
                     </div>
-                </div>
-
-                <div className="summary-card">
-                    <h3 className="card-label">Students on Academic Probation</h3>
-                    {isLoadingStudentsOnProbation ? (
-                        <p className="card-value loading">...</p>
-                    ) : (
-                        <p className="card-value">{studentsOnProbation.studentsOnProbation}</p>
-                    )}
                 </div>
             </section>
 
-            {/* Attendance by Department Chart Section */}
+            {/* Latecomers by Department Chart Section */}
             <section className="dashboard-chart-section">
-                <h3 className="section-title">Attendance by Department</h3>
-                {isLoadingDepartmentAttendance ? (
-                    <p className="loading-message">Loading department attendance data...</p>
-                ) : departmentChartData.length > 0 ? (
+                <h3 className="section-title">Latecomers by Department</h3>
+                {isLoadingLatecomersByDepartment ? (
+                    <p className="loading-message">Loading latecomers data...</p>
+                ) : latecomersChartData.length > 0 ? (
                     <div className="chart-container-large">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={departmentChartData}
+                                data={latecomersChartData}
                                 layout="vertical"
                                 margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                <XAxis type="number" domain={[0, 100]} label={{ value: 'Attendance %', position: 'bottom', offset: 0 }} />
+                                {/* XAxis now reflects raw late counts */}
+                                <XAxis
+                                    type="number"
+                                    domain={[0, xAxisDomainMax]} // Dynamic domain based on max late count
+                                    label={{ value: 'Number of Latecomers', position: 'bottom', offset: 0 }}
+                                />
                                 <YAxis type="category" dataKey="department" width={120} />
-                                <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `${value.toFixed(2)}%`} />
+                                {/* Tooltip formatter adjusted for raw numbers */}
+                                <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => `${value} students`} />
                                 <Legend />
-                                <Bar dataKey="attendance" fill="#82ca9d" name="Attendance Rate" /> {/* This fill will be overridden by CSS */}
+                                {/* Bar dataKey and name adjusted for raw numbers */}
+                                <Bar dataKey="lateCount" fill="#666666" name="Number of Latecomers" /> {/* Neutral grey fill */}
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 ) : (
-                    <p className="no-data-message">No department attendance data available.</p>
+                    <p className="no-data-message">No latecomers data by department available.</p>
                 )}
             </section>
 
@@ -498,9 +358,9 @@ const PrincipalDashboard: React.FC = () => {
             <section className="quick-actions">
                 <h3 className="section-title">Quick Actions</h3>
                 <div className="actions-grid">
-                    <button>Manage Events</button>
-                    <button>Monitor Attendance</button>
-                    <button>Generate Custom Report</button>
+                    <button>View Late Entry Logs</button>
+                    <button>Generate Latecomer Report</button>
+                    <button>Manage Event Attendance</button>
                 </div>
             </section>
         </div>
