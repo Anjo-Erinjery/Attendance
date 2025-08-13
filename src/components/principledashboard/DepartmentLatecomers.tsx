@@ -7,8 +7,9 @@ interface Student {
     id: string;
     name: string;
     department: string;
-    isLateToday: boolean; // Still needed for sorting/filtering logic
+    isLateToday: boolean;
     lateCountAggregate: number;
+    lateArrivalTime?: string | null; // Added new field for late arrival time
 }
 
 const DepartmentLatecomers: React.FC = () => {
@@ -21,7 +22,8 @@ const DepartmentLatecomers: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [sortBy, setSortBy] = useState<'today' | 'aggregate' | null>(null);
+    // DEFAULT SORT: 'today' so Today's Latecomers are shown first
+    const [sortBy, setSortBy] = useState<'today' | 'aggregate'>('today'); 
     const [showSortOptions, setShowSortOptions] = useState(false);
 
     const API_BASE_URL = 'http://localhost:3002';
@@ -62,13 +64,21 @@ const DepartmentLatecomers: React.FC = () => {
         // 3. Apply sorting based on `sortBy` state
         let sortedStudents = [...lateOnlyStudents]; 
         if (sortBy === 'today') {
-            // Filter further to only today's latecomers from the 'lateOnlyStudents' set, then sort by name
-            sortedStudents = sortedStudents.filter(s => s.isLateToday === true).sort((a, b) => a.name.localeCompare(b.name));
+            // Filter further to only today's latecomers from the 'lateOnlyStudents' set, then sort by time
+            sortedStudents = sortedStudents
+                .filter(s => s.isLateToday === true)
+                .sort((a, b) => {
+                    // Sort by late arrival time if available, otherwise by name
+                    if (a.lateArrivalTime && b.lateArrivalTime) {
+                        return a.lateArrivalTime.localeCompare(b.lateArrivalTime);
+                    }
+                    return a.name.localeCompare(b.name); 
+                });
         } else if (sortBy === 'aggregate') {
             // Sort all 'lateOnlyStudents' by aggregate count, then by name
             sortedStudents.sort((a, b) => b.lateCountAggregate - a.lateCountAggregate || a.name.localeCompare(b.name));
         } else {
-            // Default sort (if no sort option active) - just by name
+            // Default sort (if no sort option active, which now defaults to 'today') - just by name
             sortedStudents.sort((a, b) => a.name.localeCompare(b.name));
         }
         
@@ -113,19 +123,23 @@ const DepartmentLatecomers: React.FC = () => {
                     <table>
                         <thead>
                             <tr>
+                                <th>ID</th> {/* New ID column */}
                                 <th>Student Name</th>
                                 <th>Department</th>
-                                {/* Conditionally render "Aggregate Late Count" header */}
-                                {sortBy !== 'today' && <th>Aggregate Late Count</th>}
+                                {/* Conditionally render "Late Arrival Time" or "Aggregate Late Count" header */}
+                                {sortBy === 'today' && <th>Late Arrival Time</th>} {/* Displays for 'today' sort */}
+                                {sortBy !== 'today' && <th>Aggregate Late Count</th>} {/* Displays for other sorts */}
                             </tr>
                         </thead>
                         <tbody>
                             {displayedStudents.map(student => (
                                 <tr key={student.id}>
+                                    <td data-label="ID">{student.id}</td> {/* New ID column data */}
                                     <td data-label="Student Name">{student.name}</td>
                                     <td data-label="Department">{student.department}</td>
-                                    {/* Conditionally render "Aggregate Late Count" cell */}
-                                    {sortBy !== 'today' && <td data-label="Aggregate Late Count">{student.lateCountAggregate}</td>}
+                                    {/* Conditionally render "Late Arrival Time" or "Aggregate Late Count" cell */}
+                                    {sortBy === 'today' && <td data-label="Late Arrival Time">{student.lateArrivalTime || 'N/A'}</td>} {/* Data for 'today' sort */}
+                                    {sortBy !== 'today' && <td data-label="Aggregate Late Count">{student.lateCountAggregate}</td>} {/* Data for other sorts */}
                                 </tr>
                             ))}
                         </tbody>
