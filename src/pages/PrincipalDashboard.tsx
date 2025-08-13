@@ -206,23 +206,23 @@ const PrincipalDashboard: React.FC = () => {
 
             <section className="dashboard-summary-grid">
                 {/* Summary Cards - Student-centric data, focused on late attendance */}
-                <div className="summary-card">
+                {/* <div className="summary-card">
                     <h3 className="card-label">Total Students Enrolled</h3>
                     {isLoadingTotalStudents ? (
                         <p className="card-value loading">...</p>
                     ) : (
                         <p className="card-value">{totalStudentsCount.totalStudentsAcrossDepartments}</p>
                     )}
-                </div>
+                </div> */}
 
-                <div className="summary-card">
+                {/* <div className="summary-card">
                     <h3 className="card-label">Students Present Today</h3>
                     {isLoadingDailyAttendance ? (
                         <p className="card-value loading">...</p>
                     ) : (
                         <p className="card-value">{dailyAttendanceSummary.presentStudents}</p>
                     )}
-                </div>
+                </div> */}
 
                 <div className="summary-card">
                     <h3 className="card-label">Latecomers Today</h3>
