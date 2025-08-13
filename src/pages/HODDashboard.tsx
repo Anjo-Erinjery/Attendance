@@ -8,19 +8,13 @@ import Form from '../NewEvent'; // or './components/form' if it's inside compone
 const HODDashboard: React.FC = () =>{
     return (
         <div style={{ display: 'flex' }}>
-            <Sidebar /> {/* Sidebar always visible */}
+           {/* Sidebar always visible */}
 
             <div style={{ flex: 1, padding: '20px' }}>
-                <Routes>
-                    {/* Home/Dashboard */}
-                    <Route path="/hod" element={
-                        <>
-                        <Api />
-                        <RApi />
-                        </>
-                      } />
-                    <Route path='/eventcreate' element={<Form />} /></Routes>
-                    
+            <Sidebar /> 
+             <Api />
+             <RApi />
+             <Form />
             </div>
         </div>
     );

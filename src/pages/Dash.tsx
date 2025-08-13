@@ -1,9 +1,12 @@
 import React from 'react';
 import Header from '../components/HomePage/Header';
-import HODDashboard from '../pages/HODDashboard'; // Assuming this is the HOD Dashboard
+import Apps from './HODDashboard'; // Assuming this is the HOD Dashboard
 import Footer from '../components/HomePage/Footer';
-import PrincipalDashboard from '../pages/PrincipalDashboard'; // Import PrincipalDashboard directly
+import PrincipalDashboard from './PrincipalDashboard'; // Import PrincipalDashboard directly
 import { useAuthStore } from '../store/authStore'; // Import useAuthStore to get user role
+
+import  Sidebar  from '../components/Dashboard/sidebar'; // Import Sidebar component
+import HODDashboard from './HODDashboard';
 
 const Dash: React.FC = () => {
   // Get the user object from the authentication store
@@ -14,7 +17,12 @@ const Dash: React.FC = () => {
   // Determine which dashboard to render based on the user's role
   const renderDashboard = () => {
     if (user?.role === 'HOD') {
-      return <HODDashboard />; // Render the HOD Dashboard
+      return (
+        <>
+          <HODDashboard />
+          
+        </>
+      ); // Render the HOD Dashboard
     } else if (user?.role === 'Principal') {
       return <PrincipalDashboard />; // Render the Principal Dashboard
     }

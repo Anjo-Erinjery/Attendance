@@ -16,7 +16,7 @@ const Api = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("http://localhost:3001/events/Uevents");
+        const response = await fetch("http://localhost:3003/events/Uevents");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

@@ -6,6 +6,7 @@ import News from './components/HomePage/News';
 import Footer from './components/HomePage/Footer';
 import Login from './auth/Login';
 
+
 import Dash from './pages/Dash';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
@@ -33,17 +34,20 @@ const App: React.FC = () => {
         <Route path="/Dash" element={
           <ProtectedRoute allowedRoles={['HOD', 'Principal']}>
             <Dash />
+
           </ProtectedRoute>
         } />
 
         {/* --- ONLY ADDED THIS NEW ROUTE FOR DEPARTMENT LATECOMERS --- */}
         {/* This route will render DepartmentLatecomers when the URL matches /department-latecomers/ANY_DEPARTMENT_NAME */}
         <Route path="/department-latecomers/:departmentName" element={
+
           <ProtectedRoute allowedRoles={['Principal']}> {/* Assuming only Principals should view this */}
             <DepartmentLatecomers />
           </ProtectedRoute>
         } />
-        {/* ----------------------------------------------------------- */}
+{/* ----------------------------------------------------------- */}
+  
       </Routes>
     </div>
   );

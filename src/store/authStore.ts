@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuthState, User, LoginCredentials, AuthResponse } from '../types/auth.types';
+import type { AuthState, User, LoginCredentials } from '../types/auth.types';
+import {jwtDecode} from 'jwt-decode'; // ✅ correct import
 
-// Define the API base URL. This should match your backend server's address.
-// It's good practice to use an environment variable for this in a real application.
-const API_BASE_URL = 'http://localhost:3001/api'; 
+const API_BASE_URL = 'http://localhost:8000/api/'; // ✅ use ngrok or production URL
+
+interface DecodedToken {
+  uid: string;
+  role: string;
+  department: string;
+  exp: number;
+  iat: number;
+  token_type: string;
+}
 
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -25,53 +33,52 @@ export const useAuthStore = create<AuthStore>()(
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true });
         try {
-          // Use the absolute API_BASE_URL for the fetch call
-          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+          const response = await fetch(`${API_BASE_URL}token/`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials),
           });
 
           if (!response.ok) {
-            // Attempt to parse error message from response if available
             const errorData = await response.json().catch(() => ({ message: 'Unknown login error' }));
             throw new Error(errorData.message || 'Login failed');
           }
 
-          const data: AuthResponse = await response.json();
-          
+          const data = await response.json();
+
+          // ✅ store refresh token
+          localStorage.setItem('refreshToken', data.refresh);
+
+          // ✅ decode access token
+          const decoded: DecodedToken = jwtDecode(data.access);
+
           set({
-            user: data.user,
-            token: data.token,
+            user: {
+              id: decoded.uid, // match auth.types.ts
+              role: decoded.role as User['role'],
+              department: decoded.department,
+            },
+            token: data.access,
             isAuthenticated: true,
             isLoading: false,
           });
         } catch (error: any) {
           set({ isLoading: false });
-          // Re-throw the error so the calling component (HODLogin.tsx) can catch and display it
           throw error;
         }
       },
 
       logout: () => {
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
+        localStorage.removeItem('refreshToken'); // ✅ clear refresh token
+        set({ user: null, token: null, isAuthenticated: false, isLoading: false });
       },
 
       setUser: (user: User) => set({ user }),
       setToken: (token: string) => set({ token }),
-      clearAuth: () => set({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
-      }),
+      clearAuth: () => {
+        localStorage.removeItem('refreshToken');
+        set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+      },
     }),
     {
       name: 'auth-storage',
