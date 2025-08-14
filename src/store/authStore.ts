@@ -4,7 +4,7 @@ import type { AuthState, User, LoginCredentials, AuthResponse } from '../types/a
 
 // Define the API base URL. This should match your backend server's address.
 // It's good practice to use an environment variable for this in a real application.
-const API_BASE_URL = 'http://localhost:3001/api'; 
+const API_BASE_URL = 'http://localhost:3004/api'; 
 
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;

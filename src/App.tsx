@@ -6,11 +6,18 @@ import News from './components/HomePage/News';
 import Footer from './components/HomePage/Footer';
 import Login from './auth/Login';
 
-import Dash from './pages/Dash';
+
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // ONLY ADDED THIS IMPORT for DepartmentLatecomers
 import DepartmentLatecomers from './components/principledashboard/DepartmentLatecomers'; // The path you specified
+
+// import Api from './components/Dashboard/U-Events';
+// import RApi from './components/Dashboard/R-Activity';
+// import { Sidebar } from 'lucide-react';
+import HODDashboard from './pages/HODDashboard';
+import Latemain from './pages/latecometable';
+
 
 const App: React.FC = () => {
   return (
@@ -19,6 +26,7 @@ const App: React.FC = () => {
         {/* Home page route */}
         <Route path="/" element={
           <>
+         
             <Header />
             <Hero />
             <News />
@@ -32,9 +40,13 @@ const App: React.FC = () => {
         {/* Protected dashboard route (handling HOD and Principal roles) */}
         <Route path="/Dash" element={
           <ProtectedRoute allowedRoles={['HOD', 'Principal']}>
-            <Dash />
+          <><HODDashboard/>
+          </>
           </ProtectedRoute>
+         
         } />
+     
+
 
         {/* --- ONLY ADDED THIS NEW ROUTE FOR DEPARTMENT LATECOMERS --- */}
         {/* This route will render DepartmentLatecomers when the URL matches /department-latecomers/ANY_DEPARTMENT_NAME */}
@@ -43,7 +55,10 @@ const App: React.FC = () => {
             <DepartmentLatecomers />
           </ProtectedRoute>
         } />
+
+         
         {/* ----------------------------------------------------------- */}
+           <Route path="/latecomme/*" element={<Latemain />} />
       </Routes>
     </div>
   );
