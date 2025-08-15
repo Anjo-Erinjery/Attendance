@@ -27,7 +27,7 @@ const Sidebar = () => {
         <li><button onClick={() => handleNavigation("/latecomme")}>Late Comers</button></li>
         <li><button onClick={() => handleNavigation("/settings")}>Settings</button></li>
       </ul>
-      <button onClick={() => handleNavigation("/eventcreate")}>New Event</button>
+      <button onClick={() => handleNavigation("/NewEvent")}>New Event</button>
       </>
      )}
     </div>

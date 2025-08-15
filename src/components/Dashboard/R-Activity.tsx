@@ -16,7 +16,7 @@ const RApi = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:3002/activities/act");
+        const response = await fetch("http://localhost:3004/activities/act");
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

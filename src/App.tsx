@@ -7,6 +7,9 @@ import Footer from './components/HomePage/Footer';
 import Login from './auth/Login';
 
 
+
+import Dash from './pages/Dash';
+
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // ONLY ADDED THIS IMPORT for DepartmentLatecomers
@@ -40,8 +43,13 @@ const App: React.FC = () => {
         {/* Protected dashboard route (handling HOD and Principal roles) */}
         <Route path="/Dash" element={
           <ProtectedRoute allowedRoles={['HOD', 'Principal']}>
+
+            <Dash />
+
+
           <><HODDashboard/>
           </>
+
           </ProtectedRoute>
          
         } />
@@ -51,14 +59,20 @@ const App: React.FC = () => {
         {/* --- ONLY ADDED THIS NEW ROUTE FOR DEPARTMENT LATECOMERS --- */}
         {/* This route will render DepartmentLatecomers when the URL matches /department-latecomers/ANY_DEPARTMENT_NAME */}
         <Route path="/department-latecomers/:departmentName" element={
+
           <ProtectedRoute allowedRoles={['Principal']}> {/* Assuming only Principals should view this */}
             <DepartmentLatecomers />
           </ProtectedRoute>
         } />
 
+{/* ----------------------------------------------------------- */}
+  
+
+
          
         {/* ----------------------------------------------------------- */}
            <Route path="/latecomme/*" element={<Latemain />} />
+
       </Routes>
     </div>
   );
