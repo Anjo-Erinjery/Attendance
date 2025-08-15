@@ -216,6 +216,7 @@ const PrincipalDashboard: React.FC = () => {
                         <p className="card-value">{dailyAttendanceSummary.presentStudents}</p>
                     )}
                 </div> */}
+                </div>
 
                 <div className="summary-card">
                     <h3 className="card-label">{latecomersLabel}</h3>

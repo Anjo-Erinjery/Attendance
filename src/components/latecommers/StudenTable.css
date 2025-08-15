@@ -1,0 +1,48 @@
+.latecomers-table {
+    
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.latecomers-table th,
+.latecomers-table td {
+  border: 1px solid #e0e0e0;
+  padding: 15px 14px;
+  text-align: left;
+}
+
+.latecomers-table th {
+  background-color: #80878e;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.latecomers-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.latecomers-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.status-late {
+  color: #726462;
+  font-weight: bold;
+}
+
+.status-ontime {
+  color: #82b798;
+  font-weight: bold;
+}
+.main-content {
+  margin-left: 250px; /* match your sidebar width */
+  padding: 20px;
+}
+
+
