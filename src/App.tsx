@@ -7,7 +7,9 @@ import Footer from './components/HomePage/Footer';
 import Login from './auth/Login';
 
 
+
 import Dash from './pages/Dash';
+
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // ONLY ADDED THIS IMPORT for DepartmentLatecomers
@@ -41,7 +43,12 @@ const App: React.FC = () => {
         {/* Protected dashboard route (handling HOD and Principal roles) */}
         <Route path="/Dash" element={
           <ProtectedRoute allowedRoles={['HOD', 'Principal']}>
+
             <Dash />
+
+
+          <><HODDashboard/>
+          </>
 
           </ProtectedRoute>
          
@@ -57,8 +64,15 @@ const App: React.FC = () => {
             <DepartmentLatecomers />
           </ProtectedRoute>
         } />
+
 {/* ----------------------------------------------------------- */}
   
+
+
+         
+        {/* ----------------------------------------------------------- */}
+           <Route path="/latecomme/*" element={<Latemain />} />
+
       </Routes>
     </div>
   );

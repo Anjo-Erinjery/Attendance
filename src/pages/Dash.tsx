@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from '../components/HomePage/Header';
-import HODDashboard from '../pages/HODDashboard'; // Assuming this is the HOD Dashboard
+import HODDashboard from './HODDashboard'; // Assuming this is the HOD Dashboard
 import Footer from '../components/HomePage/Footer';
 import PrincipalDashboard from './PrincipalDashboard'; // Import PrincipalDashboard directly
 import { useAuthStore } from '../store/authStore'; // Import useAuthStore to get user role
