@@ -1,14 +1,14 @@
 import React from "react";
 import "./StudenTable.css";
 
-export type Student = {
-  studentName: string;
-  statusLate: boolean;
-  arrivalTime: string;
+export type late_arrivals = {
+  student_name: string;
+  dept_name: string;
+  arrival_timestamp: string;
 };
 
 type LatecomersTableProps = {
-  students: Student[];
+  students: late_arrivals[];
 };
 
 const LatecomersTable: React.FC<LatecomersTableProps> = ({ students }) => {
@@ -25,11 +25,11 @@ const LatecomersTable: React.FC<LatecomersTableProps> = ({ students }) => {
       <tbody>
         {students.map((student, index) => (
           <tr key={index}>
-            <td>{student.studentName}</td>
-            <td className={student.statusLate ? "status-late" : "status-ontime"}>
-              {student.statusLate ? "Late" : "On Time"}
+            <td>{student.student_name}</td>
+            <td className={student.dept_name}>
+              {student.dept_name}
             </td>
-            <td>{student.arrivalTime}</td>
+            <td>{student.arrival_timestamp}</td>
           </tr>
         ))}
       </tbody>

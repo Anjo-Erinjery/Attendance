@@ -232,7 +232,7 @@ const PrincipalDashboard: React.FC = () => {
                     <strong className="font-bold">Error: </strong>
                     <span className="block sm:inline">{errorPrincipalDashboardDjango}</span>
                     <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
-                        <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onClick={() => setErrorPrincipalDashboardDjango(null)}><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+                        <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onClick={() => setErrorPrincipalDashboardDjango(null)}><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" /></svg>
                     </span>
                 </div>
             )}
@@ -248,7 +248,7 @@ const PrincipalDashboard: React.FC = () => {
                 </div>
                 <div className="filter-box">
                     <label htmlFor="departments">Departments</label>
-                    <select id="departments" value="All" disabled> 
+                    <select id="departments" value="All" disabled>
                         <option value="All">All (Data not available from current API)</option>
                     </select>
                 </div>
@@ -262,10 +262,7 @@ const PrincipalDashboard: React.FC = () => {
                     {totalStudentsAvailableFromAPI === 0 && (
                         <p className="text-sm text-red-500 mt-1">Total students count not available from API.</p>
                     )}
-
-                </div> */}
-
-                </div>
+                </div> 
 
                 <div className="summary-card">
                     <h3 className="card-label">{latecomersLabel}</h3>

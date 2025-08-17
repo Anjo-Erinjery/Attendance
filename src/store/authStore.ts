@@ -4,7 +4,7 @@ import type { AuthState, User, LoginCredentials } from '../types/auth.types';
 
 import { jwtDecode } from 'jwt-decode';
 
-import {jwtDecode} from 'jwt-decode'; // ✅ correct import
+// ✅ correct import
 
 
 const API_BASE_URL = 'http://localhost:8000/api/'; // ✅ use ngrok or production URL
@@ -40,7 +40,7 @@ interface AuthStore extends AuthState {
 // Define the base API URL for your Django backend
 // It's recommended to use environment variables (e.g., import.meta.env.VITE_API_URL for Vite)
 // For now, it's hardcoded to localhost, but adjust this for production or using ngrok.
-const API_BASE_URL = 'http://localhost:8000/api/';
+
 
 // Create the Zustand store for authentication
 export const useAuthStore = create<AuthStore>()(

@@ -47,9 +47,7 @@ const App: React.FC = () => {
             <Dash />
 
 
-          <><HODDashboard/>
-          </>
-
+         
           </ProtectedRoute>
          
         } />

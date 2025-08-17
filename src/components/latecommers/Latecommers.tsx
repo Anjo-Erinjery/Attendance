@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
 import LatecomersTable from "./StudentTable";
-import type { Student } from "./StudentTable";
+import type { late_arrivals } from "./StudentTable";
 
 
 
 const LatecomersPage: React.FC = () => {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<late_arrivals[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatecomers = async () => {
       try {
-        const res = await fetch("http://localhost:3005/api"); // Your API URL
-        const data: Student[] = await res.json();
+        const res = await fetch("http://localhost:8000/api/hod-dashboard/");
+        console.log("API Response:", students);
+        const data: late_arrivals[] = await res.json();
         setStudents(data);
       } catch (error) {
         console.error("Error fetching latecomers:", error);

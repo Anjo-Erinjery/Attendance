@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import './R-Activity.css';
+import LatecomersPage from "../latecommers/Latecommers";
 
 interface Ractivity {
   name: string;
@@ -35,6 +36,7 @@ const RApi = () => {
 
   return (
     <div className="activity-section">
+      
       <h2 className="activity-title">Recent Activity</h2>
 
       {loading ? (
@@ -66,6 +68,7 @@ const RApi = () => {
         </div>
       )}
     </div>
+    
   );
 };
 
