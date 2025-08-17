@@ -262,6 +262,9 @@ const PrincipalDashboard: React.FC = () => {
                     {totalStudentsAvailableFromAPI === 0 && (
                         <p className="text-sm text-red-500 mt-1">Total students count not available from API.</p>
                     )}
+
+                </div> */}
+
                 </div>
 
                 <div className="summary-card">

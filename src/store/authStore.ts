@@ -1,7 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthState, User, LoginCredentials } from '../types/auth.types';
+
 import { jwtDecode } from 'jwt-decode';
+
+import {jwtDecode} from 'jwt-decode'; // ✅ correct import
+
+
+const API_BASE_URL = 'http://localhost:8000/api/'; // ✅ use ngrok or production URL
+
 
 // Define the structure of the decoded JWT token payload
 interface DecodedToken {
@@ -12,6 +19,10 @@ interface DecodedToken {
   iat: number; // Issued at timestamp
   token_type: string;
 }
+// Define the API base URL. This should match your backend server's address.
+// It's good practice to use an environment variable for this in a real application.
+
+
 
 // Extend your AuthState from auth.types.ts with additional Zustand store specific actions
 // and include refreshToken in the state for easier access by refreshAccessToken

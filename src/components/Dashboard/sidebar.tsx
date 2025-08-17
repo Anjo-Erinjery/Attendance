@@ -23,8 +23,8 @@ const Sidebar = () => {
       <>
      <ul className="sidebar">
         <li><button onClick={() => handleNavigation("/Dash")}>Dashboard</button></li>
-        <li><button onClick={() => handleNavigation("/U-Events")}>Event</button></li>
-        <li><button onClick={() => handleNavigation("/late")}>Late Comers</button></li>
+        <li><button onClick={() => handleNavigation("/form")}>Event</button></li>
+        <li><button onClick={() => handleNavigation("/latecomme")}>Late Comers</button></li>
         <li><button onClick={() => handleNavigation("/settings")}>Settings</button></li>
       </ul>
       <button onClick={() => handleNavigation("/NewEvent")}>New Event</button>
