@@ -48,7 +48,7 @@ const HODDashboard: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <Footer />
+        
       </div>
     </div>
   );
