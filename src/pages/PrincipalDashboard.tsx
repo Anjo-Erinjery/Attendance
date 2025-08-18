@@ -373,7 +373,7 @@ const PrincipalDashboard: React.FC = () => {
             </section>
 
             <section className="dashboard-chart-section">
-                <h3 className="section-title">Detailed Late Arrivals (from Django API)</h3>
+                <h3 className="section-title">Detailed Late Arrivals </h3>
                 {filteredLateArrivals.length > 0 ? (
                     <div className="overflow-x-auto mt-4">
                         <table className="min-w-full divide-y divide-gray-200">
