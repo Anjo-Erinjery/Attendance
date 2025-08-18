@@ -1,5 +1,5 @@
 import type { LoginCredentials, User } from '../types/auth.types';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -11,6 +11,14 @@ interface DecodedToken {
   uid: string;
   role: string;
   department: string;
+}
+
+/**
+ * Type guard to check if a string is a valid user role.
+ * This function returns a boolean and refines the type for TypeScript.
+ */
+function isValidUserRole(role: string): role is "HOD" | "Principal" {
+  return role === "HOD" || role === "Principal";
 }
 
 class AuthService {
@@ -31,15 +39,17 @@ class AuthService {
 
     const data = await response.json();
 
-    // Store refresh token for later
     localStorage.setItem('refreshToken', data.refresh);
 
-    // Decode the access token to get user details
     const decoded: DecodedToken = jwtDecode(data.access);
+
+    if (!isValidUserRole(decoded.role)) {
+      throw new Error(`Invalid user role received: ${decoded.role}`);
+    }
 
     const user: User = {
       userid: decoded.uid,
-      role: decoded.role,
+      role: decoded.role, // TypeScript now understands this is safe due to the type guard
       department: decoded.department,
     };
 
@@ -90,8 +100,12 @@ class AuthService {
     const token = parsed.state?.token;
     if (!token) throw new Error('No token found in auth state');
 
-    // Decode and return user directly from token
     const decoded: DecodedToken = jwtDecode(token);
+
+    if (!isValidUserRole(decoded.role)) {
+      throw new Error(`Invalid user role received: ${decoded.role}`);
+    }
+
     return {
       userid: decoded.uid,
       role: decoded.role,
