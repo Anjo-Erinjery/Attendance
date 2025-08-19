@@ -9,6 +9,7 @@ import Form from "../NewEvent"; // Adjust path to where you saved it
 // import Form from "../NewEvent";
 import Header from "../components/HomePage/Header";
 import Footer from "../components/HomePage/Footer";
+import LatecomersPage from "../components/latecommers/Latecommers";
 // import { MoveLeft } from "lucide-react";
 
 
@@ -17,12 +18,14 @@ const HODDashboard: React.FC = () => {
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {/* Sidebar always visible */}
       <Sidebar />
+     
+      
 
 
       {/* Main Content Area */}
       <div style={{ flex: 4, display: "flex", flexDirection: "column",}}>
         {/* Top header */}
-        <Header />
+        {/* <Header /> */}
 
         {/* Page content */}
         <main style={{ flex: 1, padding: "20px" }}>
@@ -32,6 +35,7 @@ const HODDashboard: React.FC = () => {
               path="/"
               element={
                 <>
+                
                   <Api />
                   <RApi />
                 </>
@@ -44,7 +48,7 @@ const HODDashboard: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <Footer />
+        
       </div>
     </div>
   );

@@ -6,10 +6,12 @@ import type { AuthState, User, LoginCredentials } from '../types/auth.types';
 // Import jwtDecode once and correctly
 import { jwtDecode } from 'jwt-decode';
 
+
 // Define the API base URL. Using import.meta.env for better environment management.
 // For development, it defaults to localhost:8000/api/.
 // This is the ONLY declaration for API_BASE_URL.
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+
 
 // Define the structure of the decoded JWT token payload.
 // This interface outlines the claims (information) expected within your JWT.
@@ -37,7 +39,16 @@ interface AuthStore extends AuthState {
   isLoading: boolean; // State to indicate if an authentication operation is in progress
 }
 
+
 // Create the Zustand store for authentication.
+
+// Define the base API URL for your Django backend
+// It's recommended to use environment variables (e.g., import.meta.env.VITE_API_URL for Vite)
+// For now, it's hardcoded to localhost, but adjust this for production or using ngrok.
+
+
+// Create the Zustand store for authentication
+
 export const useAuthStore = create<AuthStore>()(
   // The 'persist' middleware automatically saves and loads the store's state
   // from local storage, ensuring authentication state persists across browser sessions.

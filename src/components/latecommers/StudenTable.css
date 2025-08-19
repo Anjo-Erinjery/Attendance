@@ -1,48 +1,70 @@
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  margin-right: 250px; /* pushes content to the right of sidebar */
+  width: calc(100% - 250px);
+  margin-right:100;
+  box-sizing: border-box;
+}
+
+
 .latecomers-table {
-    
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  border-radius: 10px;
+  width: 90%; /* Let the table take up most of the container width */
+  max-width: 900px; /* Prevents the table from becoming too wide on large screens */
+  border-collapse: separate; /* Required for border-radius */
+  border-spacing: 0;
+  background-color: #ffffff;
+  border-radius: 12px; /* More rounded corners */
   overflow: hidden;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); /* More pronounced shadow */
 }
 
 .latecomers-table th,
 .latecomers-table td {
-  border: 1px solid #e0e0e0;
-  padding: 15px 14px;
+  padding: 1.25rem 1.5rem; /* Increased padding for better spacing */
   text-align: left;
+  border-bottom: 1px solid #e0e0e0; /* Use bottom border instead of full border */
 }
 
 .latecomers-table th {
-  background-color: #80878e;
+  background-color: #4a5568; /* Darker, more modern header color */
   color: white;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em; /* Adds subtle spacing to letters */
+}
+
+.latecomers-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.latecomers-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+/* Specific styling for the first column */
+.latecomers-table .first-column-cell {
+  text-align: center; /* Aligns the text in the first column to the center */
 }
 
 .latecomers-table tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f7fafc; /* Lighter alternating row color */
 }
 
 .latecomers-table tr:hover {
-  background-color: #f1f1f1;
+  background-color: #e2e8f0; /* Softer hover color */
+  transition: background-color 0.2s ease-in-out;
 }
 
 .status-late {
-  color: #726462;
+  color: #c53030; /* A more distinct red for late status */
   font-weight: bold;
 }
 
 .status-ontime {
-  color: #82b798;
+  color: #2f855a; /* A more distinct green for on-time status */
   font-weight: bold;
 }
-.main-content {
-  margin-left: 250px; /* match your sidebar width */
-  padding: 20px;
-}
-
-
