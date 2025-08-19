@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import LatecomersTable from "./StudentTable";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
+import "../latecommers/StudenTable.css";
 
 interface LateArrival {
   student_name: string;
@@ -15,10 +16,15 @@ interface ApiResponse {
 
 const LatecomersPage: React.FC = () => {
   const [students, setStudents] = useState<LateArrival[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<LateArrival[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { token, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
+  
+  // Filter states
+  const [filterMode, setFilterMode] = useState<string>('today');
+  const [specificDate, setSpecificDate] = useState<string>('');
 
   useEffect(() => {
     const fetchLatecomers = async () => {
@@ -65,6 +71,7 @@ const LatecomersPage: React.FC = () => {
         const lateArrivals = data.late_arrivals || data;
         if (Array.isArray(lateArrivals)) {
           setStudents(lateArrivals);
+          setFilteredStudents(filterLateArrivals(lateArrivals, filterMode, specificDate));
         } else {
           throw new Error("Expected array of late arrivals but got different format");
         }
@@ -83,6 +90,36 @@ const LatecomersPage: React.FC = () => {
 
     fetchLatecomers();
   }, [token, isAuthenticated, navigate, logout]);
+
+  // Filter function
+  const filterLateArrivals = (arrivals: LateArrival[], mode: string, date: string): LateArrival[] => {
+    if (mode === 'all') return arrivals;
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    return arrivals.filter(arrival => {
+      const arrivalDate = new Date(arrival.timestamp);
+      const arrivalDay = new Date(arrivalDate.getFullYear(), arrivalDate.getMonth(), arrivalDate.getDate());
+      
+      if (mode === 'today') {
+        return arrivalDay.getTime() === today.getTime();
+      } else if (mode === 'specificDate' && date) {
+        const selectedDate = new Date(date);
+        const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        return arrivalDay.getTime() === selectedDay.getTime();
+      }
+      
+      return true;
+    });
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (mode: string, date?: string) => {
+    setFilterMode(mode);
+    if (date) setSpecificDate(date);
+    setFilteredStudents(filterLateArrivals(students, mode, date || specificDate));
+  };
 
   if (loading) {
     return (
@@ -126,13 +163,49 @@ const LatecomersPage: React.FC = () => {
   }
 
   return (
- <div className="main-content min-h-screen bg-gray-100 p-4 md:p-8 font-sans">
-    <div className="p-6 bg-white rounded-lg shadow-lg mb-6">
-      <h2 className="text-2xl font-bold text-gray-800">Latecomers List</h2>
-      <p className="text-gray-600 mt-1">Showing {students.length} records</p>
+    <div className="latecomers-page min-h-screen bg-gray-100 p-4 md:p-8 font-sans">
+      <div className="max-w-6xl mx-auto">
+        <div className="p-6 bg-white rounded-lg shadow-lg mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Latecomers List</h2>
+          
+          {/* Filter Controls */}
+          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+            <div className="filter-control">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Filter By:</label>
+              <select 
+                value={filterMode} 
+                onChange={(e) => handleFilterChange(e.target.value)}
+                className="w-full md:w-auto p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="today">Today</option>
+                <option value="all">All Records</option>
+                <option value="specificDate">Specific Date</option>
+              </select>
+            </div>
+            
+            {filterMode === 'specificDate' && (
+              <div className="filter-control">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Date:</label>
+                <input
+                  type="date"
+                  value={specificDate}
+                  onChange={(e) => handleFilterChange('specificDate', e.target.value)}
+                  className="w-full md:w-auto p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            )}
+            
+            {/* <div className="ml-auto">
+              <span className="text-gray-600 font-medium">
+                Showing {filteredStudents.length} of {students.length} records
+              </span>
+            </div> */}
+          </div>
+        </div>
+        
+        <LatecomersTable students={filteredStudents} />
+      </div>
     </div>
-    <LatecomersTable students={students} />
-  </div>
   );
 };
 
