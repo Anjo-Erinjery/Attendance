@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../../styles/principaldashboard/DepartmentLatecomers.css';
-import { useAuthStore } from '../../store/authStore';
 
 // Interface for the fetched late arrival data from the main endpoint
 interface LateArrival {
@@ -25,139 +24,155 @@ const DepartmentLatecomers: React.FC = () => {
     const { departmentName } = useParams<{ departmentName: string }>();
     const navigate = useNavigate();
     const location = useLocation();
-    const { token } = useAuthStore();
-    
-    // Store all fetched data from the single API endpoint
-    const [allFetchedData, setAllFetchedData] = useState<LateArrival[]>([]);
-    const [displayedStudents, setDisplayedStudents] = useState<DisplayStudent[]>([]);
-    
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
+    // Destructure all filter data passed from PrincipalDashboard
+    const { 
+        allLateArrivalsData, 
+        filterDateInfo,
+        selectedBatch: principalSelectedBatch
+    } = location.state as { 
+        allLateArrivalsData?: LateArrival[];
+        filterDateInfo?: {
+            mode: string;
+            specificDate: string;
+            startDate: string;
+            endDate: string;
+        };
+        selectedBatch?: number | 'All';
+    } || {};
+
+    const [displayedStudents, setDisplayedStudents] = useState<DisplayStudent[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    
     const [sortBy, setSortBy] = useState<'today' | 'aggregate'>('today'); 
     const [showSortOptions, setShowSortOptions] = useState(false);
 
-    // Get the date passed from the Principal Dashboard
-    const { filterDate } = (location.state as { filterDate?: string; }) || {};
-    const dateToDisplay = filterDate || new Date().toISOString().split('T')[0];
-
-    // Use environment variable for Django API base URL
-    const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+    // Get the correct filter mode and dates from state, with fallbacks
+    const filterMode = filterDateInfo?.mode || 'currentDay';
+    const specificDate = filterDateInfo?.specificDate || '';
+    const startDate = filterDateInfo?.startDate || '';
+    const endDate = filterDateInfo?.endDate || '';
+    const selectedBatch = principalSelectedBatch || 'All';
     
-    // Fetch ALL student data from the principal's dashboard endpoint once
+    // Helper to format date to YYYY-MM-DD
+    const formatDateToISO = (date: Date): string => date.toISOString().split('T')[0];
+
+    const getDisplayTitle = (): string => {
+        if (filterMode === 'weekly' && startDate && endDate) return `Weekly (${startDate} to ${endDate})`;
+        if (filterMode === 'monthly' && startDate && endDate) {
+            const month = new Date(startDate).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            return `Monthly (${month})`;
+        }
+        if (specificDate) return specificDate;
+        return 'Today'; // Default case
+    };
+
     useEffect(() => {
-        const fetchAllLatecomers = async () => {
-            if (!token) {
-                setError("Authentication token is missing.");
-                setIsLoading(false);
-                return;
-            }
-            
-            setIsLoading(true);
-            setError(null);
-            try {
-                // Fetch from the principal dashboard endpoint
-                const endpoint = `${API_BASE_URL_DJANGO}/principal-dashboard/`;
-                
-                const response = await fetch(endpoint, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    let errorMessage = `HTTP error! status: ${response.status}`;
-                    try {
-                        const errorData = await response.json();
-                        if (errorData.detail) errorMessage = errorData.detail;
-                    } catch (jsonError) {
-                        console.error("Failed to parse error response:", jsonError);
-                    }
-                    throw new Error(errorMessage);
-                }
-                
-                const data = await response.json();
-                setAllFetchedData(data.late_arrivals); // Assuming the response format is { "late_arrivals": [...] }
-            } catch (err: any) {
-                console.error("Failed to fetch all latecomers data:", err);
-                setError(`Failed to load student data: ${err.message}`);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchAllLatecomers();
-    }, [token]);
-
-    // Filter and Sort students based on user selections and the fetched data
-    useEffect(() => {
-        const urlDeptName = decodeURIComponent(departmentName).toLowerCase().trim();
-        const urlDeptNameFormatted = urlDeptName.replace(/-/g, ' '); 
-
-        if (!urlDeptNameFormatted || !allFetchedData.length) {
-            setDisplayedStudents([]);
+        if (!allLateArrivalsData) {
+            setIsLoading(false);
             return;
         }
 
-        const uniqueStudentsInDept = new Map<string, DisplayStudent>();
-        
-        const lateCountMap = new Map<string, number>();
-        allFetchedData.forEach(student => {
-            if (student.department.toLowerCase().trim() === urlDeptNameFormatted) {
-                lateCountMap.set(student.student_name, (lateCountMap.get(student.student_name) || 0) + 1);
-            }
-        });
+        const urlDeptNameFormatted = decodeURIComponent(departmentName || '').toLowerCase().replace(/-/g, ' '); 
 
-        const matchingData = allFetchedData.filter(student => student.department.toLowerCase().trim() === urlDeptNameFormatted);
+        // Get ALL data for the selected department and batch, regardless of date
+        const departmentFilteredData = allLateArrivalsData.filter(student =>
+            student.department.toLowerCase().trim() === urlDeptNameFormatted &&
+            (selectedBatch === 'All' || student.batch === selectedBatch)
+        );
 
-        matchingData.forEach(student => {
-            const isLateOnSelectedDate = student.timestamp.startsWith(dateToDisplay);
+        // Get data for the selected date range only
+        const dateFilteredData = departmentFilteredData.filter(arrival => {
+            const arrivalDate = new Date(arrival.timestamp);
+            const arrivalDateISO = formatDateToISO(arrivalDate);
             
-            if (!uniqueStudentsInDept.has(student.student_name)) {
-                const lateArrivalTime = isLateOnSelectedDate 
-                    ? new Date(student.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                    : null;
-                
-                uniqueStudentsInDept.set(student.student_name, {
-                    student_name: student.student_name,
-                    department: student.department,
-                    batch: student.batch,
-                    isLateOnSelectedDate: isLateOnSelectedDate,
-                    lateArrivalTime: lateArrivalTime,
-                    lateCountAggregate: lateCountMap.get(student.student_name) || 0,
-                });
-            } else {
-                const existingEntry = uniqueStudentsInDept.get(student.student_name)!;
-                if (isLateOnSelectedDate && existingEntry.isLateOnSelectedDate) {
-                    const newTime = new Date(student.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    if (newTime > (existingEntry.lateArrivalTime || '')) {
-                        existingEntry.lateArrivalTime = newTime;
-                    }
-                }
-                if (isLateOnSelectedDate && !existingEntry.isLateOnSelectedDate) {
-                     const newTime = new Date(student.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                     existingEntry.isLateOnSelectedDate = true;
-                     existingEntry.lateArrivalTime = newTime;
-                }
+            if (filterMode === 'specificDate' && specificDate) {
+                return arrivalDateISO === specificDate;
+            } else if ((filterMode === 'weekly' || filterMode === 'monthly') && startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setDate(end.getDate() + 1); // Ensure end date is inclusive
+                return arrivalDate >= start && arrivalDate < end;
+            } else if (filterMode === 'currentDay') {
+                const latestDashboardDate = allLateArrivalsData.reduce((latest, current) => {
+                    const currentDate = new Date(current.timestamp);
+                    return latest && latest.getTime() > currentDate.getTime() ? latest : currentDate;
+                }, new Date(0));
+                const filterDateISO = latestDashboardDate ? formatDateToISO(latestDashboardDate) : '';
+                return arrivalDateISO === filterDateISO;
             }
+            return false;
         });
 
-        let sortedStudents = Array.from(uniqueStudentsInDept.values());
+        // Now, process the data based on the current sort method
+        let finalDisplayedStudents: DisplayStudent[] = [];
 
-        if (sortBy === 'today') {
-            sortedStudents = sortedStudents
-                .filter(s => s.isLateOnSelectedDate)
-                .sort((a, b) => a.lateArrivalTime!.localeCompare(b.lateArrivalTime!));
-        } else if (sortBy === 'aggregate') {
-            sortedStudents.sort((a, b) => b.lateCountAggregate - a.lateCountAggregate || a.student_name.localeCompare(b.student_name));
+        if (sortBy === 'aggregate') {
+            const studentCounts = new Map<string, { count: number; department: string; batch: number; }>();
+            departmentFilteredData.forEach(entry => {
+                const key = entry.student_name;
+                studentCounts.set(key, {
+                    count: (studentCounts.get(key)?.count || 0) + 1,
+                    department: entry.department,
+                    batch: entry.batch,
+                });
+            });
+            finalDisplayedStudents = Array.from(studentCounts.entries()).map(([name, data]) => ({
+                student_name: name,
+                department: data.department,
+                batch: data.batch,
+                isLateOnSelectedDate: false, // Not relevant for this view
+                lateArrivalTime: null, // Not relevant for this view
+                lateCountAggregate: data.count,
+            })).sort((a, b) => b.lateCountAggregate - a.lateCountAggregate || a.student_name.localeCompare(b.student_name));
+
+        } else if (sortBy === 'today') {
+            const uniqueStudentsMap = new Map<string, DisplayStudent>();
+            dateFilteredData.forEach(student => {
+                const latestTime = new Date(student.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const lateCount = departmentFilteredData.filter(s => s.student_name === student.student_name).length;
+                
+                if (filterMode === 'monthly') {
+                    // This case is handled by the 'aggregate' sort now, but good to keep logic separate for clarity
+                    if (!uniqueStudentsMap.has(student.student_name)) {
+                        uniqueStudentsMap.set(student.student_name, {
+                            student_name: student.student_name,
+                            department: student.department,
+                            batch: student.batch,
+                            isLateOnSelectedDate: true,
+                            lateArrivalTime: null,
+                            lateCountAggregate: lateCount,
+                        });
+                    }
+                } else {
+                    uniqueStudentsMap.set(student.student_name, {
+                        student_name: student.student_name,
+                        department: student.department,
+                        batch: student.batch,
+                        isLateOnSelectedDate: true,
+                        lateArrivalTime: latestTime,
+                        lateCountAggregate: lateCount,
+                    });
+                }
+            });
+
+            finalDisplayedStudents = Array.from(uniqueStudentsMap.values());
+            finalDisplayedStudents.sort((a, b) => {
+                const timeA = a.lateArrivalTime ? new Date(`1970-01-01T${a.lateArrivalTime}`).getTime() : 0;
+                const timeB = b.lateArrivalTime ? new Date(`1970-01-01T${b.lateArrivalTime}`).getTime() : 0;
+                return timeA - timeB; // Sort by time ascending
+            });
         }
-        
-        setDisplayedStudents(sortedStudents);
-    }, [allFetchedData, departmentName, sortBy, dateToDisplay]);
 
-    const formatDepartmentName = (name: string) => {
-        return decodeURIComponent(name || '').replace(/-/g, ' ');
-    }
+        setDisplayedStudents(finalDisplayedStudents);
+        setIsLoading(false);
+
+    }, [allLateArrivalsData, departmentName, filterDateInfo, selectedBatch, sortBy]);
+    
+    const handleSortByChange = (sortType: 'today' | 'aggregate') => {
+        setSortBy(sortType);
+        setShowSortOptions(false);
+    };
 
     return (
         <div className="latecomers-container">
@@ -165,9 +180,8 @@ const DepartmentLatecomers: React.FC = () => {
                 <button onClick={() => navigate(-1)} className="back-button">
                     &larr; Back
                 </button>
-                {/* REMOVED "LATECOMERS" FROM THE TITLE */}
                 <h1 className="page-title">
-                    {formatDepartmentName(departmentName)}
+                    {decodeURIComponent(departmentName).replace(/-/g, ' ')}
                 </h1>
                 <div className="sort-menu-container">
                     <button onClick={() => setShowSortOptions(!showSortOptions)} className="menu-icon-button">
@@ -176,50 +190,50 @@ const DepartmentLatecomers: React.FC = () => {
                     {showSortOptions && (
                         <div className="sort-options-dropdown">
                             <button 
-                                onClick={() => { setSortBy('today'); setShowSortOptions(false); }} 
+                                onClick={() => handleSortByChange('today')} 
                                 className={`sort-button ${sortBy === 'today' ? 'active' : ''}`}
                             >
-                                Latecomers ({dateToDisplay})
+                                Latecomers ({getDisplayTitle()})
                             </button>
                             <button 
-                                onClick={() => { setSortBy('aggregate'); setShowSortOptions(false); }} 
+                                onClick={() => handleSortByChange('aggregate')} 
                                 className={`sort-button ${sortBy === 'aggregate' ? 'active' : ''}`}
                             >
-                                Highest Late Count
+                                Highest Late Count (Overall)
                             </button>
                         </div>
                     )}
                 </div>
             </header>
 
-            {error && (<div className="error-message"><p>{error}</p></div>)}
-
             {isLoading ? (
                 <p className="loading-message">Loading students data...</p>
-            ) : displayedStudents.length === 0 && !error ? (
-                <p className="no-data-message">No latecomers found for {formatDepartmentName(departmentName)} on {dateToDisplay}.</p>
             ) : (
                 <div className="students-table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Student Name</th>
-                                <th>Department</th>
-                                {sortBy === 'today' && <th>Late Arrival Time</th>}
-                                {sortBy !== 'today' && <th>Aggregate Late Count</th>}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {displayedStudents.map((student, index) => (
-                                <tr key={index}>
-                                    <td data-label="Student Name">{student.student_name}</td>
-                                    <td data-label="Department">{student.department}</td>
-                                    {sortBy === 'today' && <td data-label="Late Arrival Time">{student.lateArrivalTime || 'N/A'}</td>}
-                                    {sortBy !== 'today' && <td data-label="Aggregate Late Count">{student.lateCountAggregate}</td>}
+                    {displayedStudents.length === 0 ? (
+                        <p className="no-data-message">No latecomers found for {decodeURIComponent(departmentName).replace(/-/g, ' ')} for this period.</p>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Batch</th>
+                                    {sortBy === 'today' && <th>Late Arrival Time</th>}
+                                    <th>Late Count</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {displayedStudents.map((student, index) => (
+                                    <tr key={index}>
+                                        <td data-label="Student Name">{student.student_name}</td>
+                                        <td data-label="Batch">{student.batch}</td>
+                                        {sortBy === 'today' && <td data-label="Late Arrival Time">{student.lateArrivalTime || 'N/A'}</td>}
+                                        <td data-label="Late Count">{student.lateCountAggregate}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             )}
         </div>
