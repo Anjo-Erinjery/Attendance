@@ -10,7 +10,7 @@ const Latemain: React.FC = () => {
       <Sidebar />
 
       <div style={{ flex: 4, display: "flex", flexDirection: "column" }}>
-        <Header />
+        
 
         <main style={{ flex: 1, padding: "20px" }}>
           <Routes>
