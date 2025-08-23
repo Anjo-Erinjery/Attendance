@@ -1,3 +1,13 @@
+.main-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  background-image: url("https://gyaanarth.com/wp-content/uploads/2022/07/unnamed-file-scaled.jpg");
+  background-size: cover;
+}
+
 .login-container {
   max-width: 400px;
   margin: 100px auto;
@@ -7,6 +17,8 @@
   border-radius: 10px;
   text-align: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-image: inherit;
+  background-size: cover;
 }
 
 .login-container h2 {
@@ -36,7 +48,7 @@
 .login-container button {
   width: 100%;
   padding: 12px;
-  background-color: #222;
+  background-color: #8e4343;
   color: white;
   border: none;
   border-radius: 6px;
