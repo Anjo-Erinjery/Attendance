@@ -6,6 +6,7 @@
     background-color: #f0f2f5; /* A softer, more modern light gray */
     min-height: 100vh;
 }
+
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -16,21 +17,25 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.08); /* Subtle grey shadow */
     margin-bottom: 30px;
 }
+
 .dashboard-title {
     font-size: 1.8rem;
     font-weight: 700;
     color: #2c3e50; /* A dark charcoal for better readability */
 }
+
 .header-actions {
     display: flex;
     align-items: center;
 }
+
 .loading-message {
     text-align: center;
     font-size: 1.2rem;
     color: #666;
     padding: 50px;
 }
+
 .no-data-message {
     text-align: center;
     color: #999;
@@ -50,18 +55,21 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.06);
     margin-bottom: 30px;
 }
+
 .filter-box {
     display: flex;
     flex-direction: column;
     flex: 1;
     min-width: 180px;
 }
+
 .filter-box label {
     font-size: 0.9rem;
     color: #555;
     margin-bottom: 8px;
     font-weight: 500;
 }
+
 .filter-box select, .filter-box input {
     padding: 12px;
     border: 1px solid #e0e0e0;
@@ -71,19 +79,38 @@
     background-color: #f8f9fa;
     transition: all 0.2s ease-in-out;
 }
+
 .filter-box select:focus, .filter-box input:focus {
     outline: none;
     border-color: #000;
     box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
 }
 
-/* Summary Cards */
-.dashboard-summary-grid {
+/* Updated grid layout for a better visual balance */
+.dashboard-main-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
+    /* Placing summary and entries on the top row, chart below them */
+    grid-template-areas:
+        "summary chart"
+        "entries entries";
+    /* Adjusted column widths for a more balanced look */
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
 }
+
+.summary-card-container {
+    grid-area: summary;
+}
+
+.chart-section-container {
+    grid-area: chart;
+}
+
+.recent-entries-section-container {
+    grid-area: entries;
+}
+
+/* Summary Cards */
 .summary-card {
     background-color: #fff;
     padding: 30px;
@@ -92,76 +119,30 @@
     text-align: center;
     border: 1px solid #f0f2f5;
     transition: transform 0.2s ease-in-out;
+    /* Added some padding and flexbox for better centering */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
 }
+
 .summary-card:hover {
     transform: translateY(-5px);
 }
+
 .card-label {
     font-size: 1.1rem;
     font-weight: 600;
     color: #6c757d;
     margin-bottom: 12px;
 }
+
 .card-value {
     font-size: 3rem;
     font-weight: 700;
     color: #2c3e50;
-}
-.recent-entries-card {
-    text-align: left;
-}
-
-/* New Section for Recent Latecomers */
-.recent-latecomers-section {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-    margin-bottom: 30px;
-}
-.recent-entries-content {
-    /* Updated for row-wise display of cards */
-    display: flex;
-    flex-wrap: wrap; 
-    gap: 20px; 
-}
-.recent-entry-item {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center; 
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    transition: transform 0.2s ease-in-out;
-    flex: 1; 
-    min-width: 250px; 
-}
-.recent-entry-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.entry-details {
-    display: flex;
-    flex-direction: column;
-    margin-right: 15px; 
-}
-.entry-name {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #333;
-    margin: 0 0 5px; 
-}
-.entry-department {
-    font-size: 1rem;
-    color: #6c757d;
+    /* Add some visual breathing room */
     margin: 0;
-}
-.entry-time {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #adb5bd;
 }
 
 /* Chart Section */
@@ -171,13 +152,89 @@
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
+
 .section-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #2c3e50;
     margin-bottom: 25px;
 }
+
 .chart-container-bar {
     width: 100%;
     height: 400px;
+}
+
+/* New Section for Recent Latecomers */
+.recent-latecomers-section {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.recent-entries-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto; /* Enable scrolling for many entries */
+    flex-grow: 1; /* Allow content to fill available space */
+}
+
+.recent-entry-item {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease-in-out;
+    flex: 1;
+    min-width: 250px;
+}
+
+.recent-entry-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.entry-details {
+    display: flex;
+    flex-direction: column;
+    margin-right: 15px; 
+}
+
+.entry-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 5px; 
+}
+
+.entry-department {
+    font-size: 1rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+.entry-time {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #adb5bd;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 1024px) {
+    .dashboard-main-grid {
+        grid-template-areas:
+            "summary"
+            "chart"
+            "entries";
+        grid-template-columns: 1fr;
+    }
 }
