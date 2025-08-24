@@ -110,7 +110,7 @@ const PrincipalDashboard: React.FC = () => {
             setErrorPrincipalDashboardDjango(null);
 
             try {
-                const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+                const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'https://scanbyte-backend.onrender.com/api';
                 const endpoint = `${API_BASE_URL_DJANGO}/principal-dashboard/`;
                 console.log("Fetching from endpoint:", endpoint);
 

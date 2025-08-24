@@ -22,7 +22,9 @@ interface ApiResponse {
 // Interface for the props of the dynamic student table
 interface StudentTableProps {
     students: LateArrival[];
-    isDateRangeMode: boolean; // New prop to control table display mode
+    isDateRangeMode: boolean;
+    showAggregateColumn: boolean; // New prop to control aggregate column visibility
+    allStudents?: LateArrival[]; // All students data for calculating aggregates
 }
 
 /**
@@ -30,8 +32,15 @@ interface StudentTableProps {
  * of late counts for a date range.
  * @param {Object[]} students - The array of student late arrival data.
  * @param {boolean} isDateRangeMode - Flag to determine the table's display mode.
+ * @param {boolean} showAggregateColumn - Flag to show aggregate column for all records.
+ * @param {Object[]} allStudents - All student data for calculating aggregates.
  */
-const StudentTable: React.FC<StudentTableProps> = ({ students, isDateRangeMode }) => {
+const StudentTable: React.FC<StudentTableProps> = ({ 
+    students, 
+    isDateRangeMode, 
+    showAggregateColumn,
+    allStudents = [] 
+}) => {
     // Helper function to format the arrival time
     const formatTime = (timestamp: string) => {
         const date = new Date(timestamp);
@@ -43,6 +52,16 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, isDateRangeMode }
         const date = new Date(timestamp);
         return date.toLocaleDateString();
     };
+
+    // Calculate aggregate counts for all students
+    const calculateAggregateCounts = (students: LateArrival[]) => {
+        return students.reduce((acc, curr) => {
+            acc[curr.student_name] = (acc[curr.student_name] || 0) + 1;
+            return acc;
+        }, {} as { [key: string]: number });
+    };
+
+    const aggregateCounts = calculateAggregateCounts(allStudents);
 
     // Aggregate data for Date Range mode
     const aggregatedData = students.reduce((acc, curr) => {
@@ -78,6 +97,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, isDateRangeMode }
                                     </>
                                 )}
                                 {!isDateRangeMode && <th>Batch</th>}
+                                {showAggregateColumn && <th>Total Late Count (All Time)</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -86,6 +106,11 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, isDateRangeMode }
                                     <tr key={index}>
                                         <td data-label="Student Name">{studentName}</td>
                                         <td data-label="Total Late Count">{count}</td>
+                                        {showAggregateColumn && (
+                                            <td data-label="Total Late Count (All Time)">
+                                                {aggregateCounts[studentName] || 0}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (
@@ -95,6 +120,11 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, isDateRangeMode }
                                         <td data-label="Date">{formatDate(student.timestamp)}</td>
                                         <td data-label="Arrival Time">{formatTime(student.timestamp)}</td>
                                         <td data-label="Batch">{student.batch}</td>
+                                        {showAggregateColumn && (
+                                            <td data-label="Total Late Count (All Time)">
+                                                {aggregateCounts[student.student_name] || 0}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}
@@ -191,6 +221,62 @@ const LatecomersPage: React.FC = () => {
         fetchAllLatecomers();
     }, [token, isAuthenticated, navigate, logout]);
 
+    // Handler for filter mode change (dropdown)
+    const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const newFilterMode = event.target.value;
+        setFilterMode(newFilterMode);
+        // Reset date fields when mode changes
+        if (newFilterMode !== 'specificDate') setSpecificDate('');
+        if (newFilterMode !== 'dateRange') {
+            setStartDate('');
+            setEndDate('');
+        }
+    };
+    
+    // Handler for specific date input change
+    const handleSpecificDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSpecificDate(event.target.value);
+        setFilterMode('specificDate');
+    };
+
+    // Handlers for date range inputs
+    const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setStartDate(event.target.value);
+        setFilterMode('dateRange');
+    };
+
+    const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEndDate(event.target.value);
+        setFilterMode('dateRange');
+    };
+    
+    // Handler for batch filter change
+    const handleBatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedBatch(event.target.value);
+        // Don't change filterMode when selecting batch
+    };
+
+    // Function to set date range for predefined periods (last week, last month)
+    const setPredefinedDateRange = (period: string) => {
+        const today = new Date();
+        const startDate = new Date();
+        
+        switch(period) {
+            case 'lastWeek':
+                startDate.setDate(today.getDate() - 7);
+                break;
+            case 'lastMonth':
+                startDate.setMonth(today.getMonth() - 1);
+                break;
+            default:
+                return;
+        }
+        
+        setStartDate(startDate.toISOString().split('T')[0]);
+        setEndDate(today.toISOString().split('T')[0]);
+        setFilterMode('dateRange');
+    };
+
     // Effect to apply filters whenever filter states change
     useEffect(() => {
         const applyFilters = () => {
@@ -229,55 +315,33 @@ const LatecomersPage: React.FC = () => {
                 dateMatch = arrivalDate === today;
             } else if (mode === 'specificDate' && date) {
                 dateMatch = arrivalDate === date;
-            } else if (mode === 'dateRange' && startDateObj && endDateObj) {
-                // Ensure the arrival is within the selected date range
-                // End date is inclusive, so we add one day to the end date for the check
-                const endDateInclusive = new Date(endDateObj);
-                endDateInclusive.setDate(endDateInclusive.getDate() + 1);
-                dateMatch = arrivalDateObj >= startDateObj && arrivalDateObj < endDateInclusive;
+            } else if (mode === 'dateRange') {
+                if (startDateObj && endDateObj) {
+                    // Set end date to end of day for inclusive comparison
+                    const endDateInclusive = new Date(endDateObj);
+                    endDateInclusive.setHours(23, 59, 59, 999);
+                    dateMatch = arrivalDateObj >= startDateObj && arrivalDateObj <= endDateInclusive;
+                } else if (startDateObj) {
+                    // Only start date provided
+                    dateMatch = arrivalDateObj >= startDateObj;
+                } else if (endDateObj) {
+                    // Only end date provided
+                    const endDateInclusive = new Date(endDateObj);
+                    endDateInclusive.setHours(23, 59, 59, 999);
+                    dateMatch = arrivalDateObj <= endDateInclusive;
+                } else {
+                    // No dates provided, show all
+                    dateMatch = true;
+                }
             } else if (mode === 'all') {
                 dateMatch = true;
             }
 
-            // Filter by batch
-            const batchMatch = (batch === 'All' || arrival.batch === parseInt(batch));
+            // Filter by batch - handle 'All' option and numeric comparison
+            const batchMatch = batch === 'All' || arrival.batch.toString() === batch;
             
             return dateMatch && batchMatch;
         });
-    };
-
-    // Handler for filter mode change (dropdown)
-    const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newFilterMode = event.target.value;
-        setFilterMode(newFilterMode);
-        // Reset date fields when mode changes
-        if (newFilterMode !== 'specificDate') setSpecificDate('');
-        if (newFilterMode !== 'dateRange') {
-            setStartDate('');
-            setEndDate('');
-        }
-    };
-    
-    // Handler for specific date input change
-    const handleSpecificDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSpecificDate(event.target.value);
-        setFilterMode('specificDate');
-    };
-
-    // Handlers for date range inputs
-    const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setStartDate(event.target.value);
-        setFilterMode('dateRange');
-    };
-
-    const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setEndDate(event.target.value);
-        setFilterMode('dateRange');
-    };
-    
-    // Handler for batch filter change
-    const handleBatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedBatch(event.target.value);
     };
 
     // --- CHART DATA PROCESSING ---
@@ -287,13 +351,15 @@ const LatecomersPage: React.FC = () => {
         const dailyCounts: { [date: string]: number } = {};
         const today = new Date();
         
-        for (let i = 0; i < 7; i++) {
+        // Initialize last 7 days with zero counts
+        for (let i = 6; i >= 0; i--) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const dateString = d.toISOString().split('T')[0];
             dailyCounts[dateString] = 0;
         }
 
+        // Count arrivals for each day
         arrivals.forEach(arrival => {
             const arrivalDate = new Date(arrival.timestamp).toISOString().split('T')[0];
             if (dailyCounts.hasOwnProperty(arrivalDate)) {
@@ -301,10 +367,15 @@ const LatecomersPage: React.FC = () => {
             }
         });
 
-        return Object.keys(dailyCounts).map(date => ({
-            date,
-            latecomers: dailyCounts[date],
-        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        // Convert to array and format for chart
+        return Object.keys(dailyCounts).map(date => {
+            const d = new Date(date);
+            const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return {
+                date: formattedDate,
+                latecomers: dailyCounts[date],
+            };
+        });
     };
 
     // Prepare data for the chart (top 5 latecomers) for Date Range mode
@@ -327,7 +398,7 @@ const LatecomersPage: React.FC = () => {
 
     const chartData = filterMode === 'dateRange' 
         ? getTopLatecomersChartData(filteredStudents)
-        : getDailyChartData(students);
+        : getDailyChartData(filteredStudents); // Use filteredStudents instead of students
 
     if (loading) {
         return (
@@ -338,16 +409,39 @@ const LatecomersPage: React.FC = () => {
     }
 
     // --- DISPLAY LOGIC ---
-    const cardTitle = filterMode === 'today' ? 'Today' : (filterMode === 'specificDate' ? specificDate : (startDate && endDate ? `${startDate} to ${endDate}` : 'All'));
+    const getCardTitle = () => {
+        switch(filterMode) {
+            case 'today':
+                return 'Today';
+            case 'specificDate':
+                return specificDate || 'Specific Date';
+            case 'dateRange':
+                if (startDate && endDate) {
+                    return `${startDate} to ${endDate}`;
+                } else if (startDate) {
+                    return `From ${startDate}`;
+                } else if (endDate) {
+                    return `Until ${endDate}`;
+                } else {
+                    return 'All Dates';
+                }
+            case 'all':
+                return 'All Records';
+            default:
+                return 'All Records';
+        }
+    };
+
+    const cardTitle = getCardTitle();
     const totalLatecomers = filteredStudents.length;
     const isDateRangeMode = filterMode === 'dateRange';
+    const showAggregateColumn = filterMode === 'all'; // Show aggregate column only for "All Records"
 
     return (
         <div className="hod-dashboard">
             <header className="dashboard-header">
                 <h1 className="dashboard-title">HOD Dashboard: {department}</h1>
                 <div className="header-actions">
-                    
                     <button className="logout-button" onClick={logout}>Logout</button>
                 </div>
             </header>
@@ -359,6 +453,8 @@ const LatecomersPage: React.FC = () => {
                         <option value="today">Today</option>
                         <option value="specificDate">Specific Date</option>
                         <option value="dateRange">Date Range</option>
+                        <option value="lastWeek">Last Week</option>
+                        <option value="lastMonth">Last Month</option>
                         <option value="all">All Records</option>
                     </select>
                 </div>
@@ -400,7 +496,7 @@ const LatecomersPage: React.FC = () => {
                     <select id="batch-filter" value={selectedBatch} onChange={handleBatchChange}>
                         <option value="All">All</option>
                         {batches.map(batch => (
-                            <option key={batch} value={batch}>
+                            <option key={batch} value={batch.toString()}>
                                 {batch}
                             </option>
                         ))}
@@ -441,7 +537,12 @@ const LatecomersPage: React.FC = () => {
 
             <section className="recent-latecomers-section">
                 <h3 className="section-title">Latecomers Details ({cardTitle})</h3>
-                <StudentTable students={filteredStudents} isDateRangeMode={isDateRangeMode} />
+                <StudentTable 
+                    students={filteredStudents} 
+                    isDateRangeMode={isDateRangeMode} 
+                    showAggregateColumn={showAggregateColumn}
+                    allStudents={students}
+                />
             </section>
 
             {error && (
