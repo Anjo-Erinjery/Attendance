@@ -36,7 +36,8 @@ interface DjangoUserData {
 interface DjangoLateArrival {
     student_name: string;
     department: string;
-    batch: number;
+    batch: string; // Batch is a string like "U5DS2024"
+    ugpg: string; // <-- ADDED: UG/PG status
     timestamp: string;
 }
 
@@ -58,12 +59,13 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
     const displayTableRows = () => {
         if (filterMode === 'monthly') {
             // For monthly mode, group by student and show total late count for the period
-            const studentMonthlyCounts = new Map<string, { count: number; batch: number; }>();
+            const studentMonthlyCounts = new Map<string, { count: number; batch: string; ugpg: string }>(); // ugpg added
             entries.forEach(entry => {
                 const key = entry.student_name;
                 studentMonthlyCounts.set(key, {
                     count: (studentMonthlyCounts.get(key)?.count || 0) + 1,
-                    batch: entry.batch, // Include batch information
+                    batch: entry.batch,
+                    ugpg: entry.ugpg, // Store ugpg here
                 });
             });
             // Sort by highest late count
@@ -71,20 +73,22 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
                 .sort((a, b) => b[1].count - a[1].count)
                 .map(([name, data]) => (
                     <tr key={name}>
-                        <td>{name}</td>
-                        <td>{data.batch}</td>
-                        <td>N/A</td> {/* Late arrival time is not applicable for monthly aggregate */}
-                        <td>{data.count}</td>
+                        <td data-label="Student Name">{name}</td>
+                        <td data-label="Batch">{data.batch}</td>
+                        <td data-label="UG/PG">{data.ugpg}</td> {/* Display UG/PG */}
+                        <td data-label="Late Arrival Time">N/A</td> {/* Late arrival time is not applicable for monthly aggregate */}
+                        <td data-label="Late Count">{data.count}</td>
                     </tr>
                 ));
         } else {
             // For currentDay, weekly, specificDate, show individual late entries
             return entries.map((entry, index) => (
                 <tr key={index}>
-                    <td>{entry.student_name}</td>
-                    <td>{entry.batch}</td>
-                    <td>{formatTimestamp(entry.timestamp)}</td>
-                    <td>1</td> {/* Each individual entry is one late count */}
+                    <td data-label="Student Name">{entry.student_name}</td>
+                    <td data-label="Batch">{entry.batch}</td>
+                    <td data-label="UG/PG">{entry.ugpg}</td> {/* Display UG/PG */}
+                    <td data-label="Late Arrival Time">{formatTimestamp(entry.timestamp)}</td>
+                    <td data-label="Late Count">1</td> {/* Each individual entry is one late count */}
                 </tr>
             ));
         }
@@ -153,7 +157,7 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
             <div className="header-actions" style={{ marginBottom: '15px' }}>
                 <button
                     onClick={handlePrintPdf}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 ease-in-out"
+                    className="download-pdf-button" // Using the class for greyscale styling
                 >
                     Download as PDF
                 </button>
@@ -165,13 +169,12 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
                             <tr>
                                 <th>STUDENT NAME</th>
                                 <th>BATCH</th>
+                                <th>UG/PG</th> {/* ADDED: New header for UG/PG */}
                                 <th>LATE ARRIVAL TIME</th>
                                 <th>LATE COUNT</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {displayTableRows()}
-                        </tbody>
+                        <tbody>{displayTableRows()}</tbody>
                     </table>
                 ) : (
                     <p className="no-data-message">No recent late entries available for this period.</p>
@@ -192,8 +195,12 @@ const PrincipalDashboard: React.FC = () => {
 
     const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
     const [departments, setDepartments] = useState<string[]>(['All']);
-    const [selectedBatch, setSelectedBatch] = useState<number | 'All'>('All');
-    const [batches, setBatches] = useState<(number | 'All')[]>(['All']);
+    // REMOVED: selectedBatch
+    // REMOVED: batches
+
+    // ADDED: State for UG/PG filter
+    const [selectedUgPg, setSelectedUgPg] = useState<string | 'All'>('All');
+    const [ugpgOptions, setUgPgOptions] = useState<(string | 'All')[]>(['All']);
 
     const [principalDashboardDjangoData, setPrincipalDashboardDjangoData] = useState<PrincipalDashboardDjangoData | null>(null);
     const [isLoadingPrincipalDashboardDjangoData, setIsLoadingPrincipalDashboardDjangoData] = useState(true);
@@ -258,7 +265,7 @@ const PrincipalDashboard: React.FC = () => {
             setErrorPrincipalDashboardDjango(null);
 
             try {
-                const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+                const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'https://scanbyte-backend.onrender.com/api';
                 const endpoint = `${API_BASE_URL_DJANGO}/principal-dashboard/`;
                 console.log("Fetching from endpoint:", endpoint);
 
@@ -295,8 +302,11 @@ const PrincipalDashboard: React.FC = () => {
                 const uniqueDepartments = Array.from(new Set(data.late_arrivals.map(arrival => arrival.department)));
                 setDepartments(['All', ...uniqueDepartments]);
 
-                const uniqueBatches = Array.from(new Set(data.late_arrivals.map(arrival => arrival.batch)));
-                setBatches(['All', ...uniqueBatches.sort((a, b) => a - b)]);
+                // REMOVED: Batch specific logic
+                // ADDED: UG/PG specific logic
+                const uniqueUgPg = Array.from(new Set(data.late_arrivals.map(arrival => arrival.ugpg)));
+                setUgPgOptions(['All', ...uniqueUgPg.sort((a, b) => String(a).localeCompare(String(b)))]);
+
 
                 const now = new Date();
                 if (filterMode === 'currentDay') {
@@ -346,7 +356,7 @@ const PrincipalDashboard: React.FC = () => {
 
     const handleSpecificDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSpecificDate(event.target.value);
-        setFilterMode('specificDate');
+        setFilterMode('specificDate'); // Set mode explicitly when date is picked
         setStartDate('');
         setEndDate('');
     };
@@ -359,9 +369,11 @@ const PrincipalDashboard: React.FC = () => {
         setEndDate(event.target.value);
     };
 
-    const handleBatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        setSelectedBatch(value === 'All' ? 'All' : Number(value));
+    // REMOVED: handleBatchChange
+
+    // ADDED: Handler for UG/PG filter change
+    const handleUgPgChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedUgPg(event.target.value);
     };
 
     const handleDepartmentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -380,7 +392,7 @@ const PrincipalDashboard: React.FC = () => {
                             startDate: startDate,
                             endDate: endDate
                         },
-                        selectedBatch: selectedBatch
+                        selectedUgPg: selectedUgPg // <-- CHANGED: Pass selectedUgPg instead of selectedBatch
                     }
                 });
             }
@@ -424,15 +436,22 @@ const PrincipalDashboard: React.FC = () => {
             } else if (filterMode === 'specificDate' && specificDate) {
                 isWithinDateRange = arrivalDateOnlyISO === specificDate;
             } else if ((filterMode === 'weekly' || filterMode === 'monthly') && startFilterDate && endFilterDate) {
-                isWithinDateRange = arrivalDateTime >= startFilterDate && arrivalDateTime <= endFilterDate;
+                // Adjust endFilterDate to include the entire end day
+                const adjustedEndFilterDate = new Date(endFilterDate);
+                adjustedEndFilterDate.setHours(23, 59, 59, 999);
+                isWithinDateRange = arrivalDateTime >= startFilterDate && arrivalDateTime <= adjustedEndFilterDate;
             }
 
             const isWithinDepartment = selectedDepartment === 'All' ||
                 arrival.department.toLowerCase().trim() === selectedDepartment.toLowerCase().trim();
 
-            const isWithinBatch = selectedBatch === 'All' || arrival.batch === selectedBatch;
+            // CHANGED: UG/PG filter logic instead of Batch filter
+            const isWithinUgPg = selectedUgPg === 'All' || arrival.ugpg === selectedUgPg;
+            
+            // Debugging console logs - uncomment to re-enable
+            // console.log(`UG/PG Filter Debug: Student: ${arrival.student_name}, Arrival UG/PG: ${arrival.ugpg} (type: ${typeof arrival.ugpg}), Selected UG/PG: ${selectedUgPg} (type: ${typeof selectedUgPg}), Is Within UG/PG: ${isWithinUgPg}, Date Pass: ${isWithinDateRange}, Dept Pass: ${isWithinDepartment}`);
 
-            return isWithinDateRange && isWithinDepartment && isWithinBatch;
+            return isWithinDateRange && isWithinDepartment && isWithinUgPg;
         });
     };
 
@@ -444,6 +463,7 @@ const PrincipalDashboard: React.FC = () => {
 
     const departmentLatecomersData = () => {
         const departmentCounts: { [key: string]: number } = {};
+        // Initialize counts for all departments fetched, excluding 'All'
         departments.filter(d => d !== 'All').forEach(dept => {
             departmentCounts[dept] = 0;
         });
@@ -474,7 +494,7 @@ const PrincipalDashboard: React.FC = () => {
     const handleBarClick = (data: any, index: number) => {
         const department = data.department;
         const urlSafeDepartment = encodeURIComponent(department.toLowerCase().replace(/\s/g, '-'));
-        navigate(`/department-dashboard/${urlSafeDepartment}`, { // Corrected
+        navigate(`/department-dashboard/${urlSafeDepartment}`, {
             state: {
                 allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
                 filterDateInfo: {
@@ -483,7 +503,7 @@ const PrincipalDashboard: React.FC = () => {
                     startDate: startDate,
                     endDate: endDate
                 },
-                selectedBatch: selectedBatch
+                selectedUgPg: selectedUgPg // <-- CHANGED: Pass selectedUgPg instead of selectedBatch
             }
         });
     };
@@ -499,9 +519,10 @@ const PrincipalDashboard: React.FC = () => {
     return (
         <div className="principal-dashboard">
             <header className="dashboard-header">
-                <h1 className="dashboard-title">Principal Dashboard</h1> {/* Changed from (Late Attendance) to (Latecomers) */}
+                <h1 className="dashboard-title">Principal Dashboard</h1>
                 <div className="header-actions">
-                    <span className="text-gray-700 font-medium mr-4">Welcome Sir</span> {/* Changed to static "Welcome Sir, always" */}
+                    {/* Display user name or role if available, or a generic welcome */}
+                    <span className="text-gray-700 font-medium mr-4">Welcome Sir</span>
                     <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 ease-in-out">
                         BACK
                     </button>
@@ -524,7 +545,7 @@ const PrincipalDashboard: React.FC = () => {
                         <input
                             id="specific-date"
                             type="date"
-                            value={specificDate}
+                            value={specificDate || ''} // Ensure value is never NaN or undefined
                             onChange={handleSpecificDateChange}
                         />
                     </div>
@@ -536,7 +557,7 @@ const PrincipalDashboard: React.FC = () => {
                             <input
                                 id="start-date"
                                 type="date"
-                                value={startDate}
+                                value={startDate || ''} // Ensure value is never NaN or undefined
                                 onChange={handleStartDateChange}
                             />
                         </div>
@@ -545,7 +566,7 @@ const PrincipalDashboard: React.FC = () => {
                             <input
                                 id="end-date"
                                 type="date"
-                                value={endDate}
+                                value={endDate || ''} // Ensure value is never NaN or undefined
                                 onChange={handleEndDateChange}
                             />
                         </div>
@@ -559,12 +580,13 @@ const PrincipalDashboard: React.FC = () => {
                         ))}
                     </select>
                 </div>
+                {/* CHANGED: Replaced Batch filter with UG/PG filter */}
                 <div className="filter-box">
-                    <label htmlFor="batches">Batch</label>
-                    <select id="batches" onChange={handleBatchChange} value={selectedBatch}>
-                        {batches.map(batch => (
-                            <option key={batch} value={batch}>
-                                {batch === 'All' ? 'All' : `Batch ${batch}`}
+                    <label htmlFor="ugpg-filter">UG/PG</label>
+                    <select id="ugpg-filter" onChange={handleUgPgChange} value={selectedUgPg}>
+                        {ugpgOptions.map(option => (
+                            <option key={option} value={option}>
+                                {option === 'All' ? 'All' : option}
                             </option>
                         ))}
                     </select>
