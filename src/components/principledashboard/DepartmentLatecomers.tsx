@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../../styles/principaldashboard/DepartmentLatecomers.css';
+import jsPDF from 'jspdf'; // Import jsPDF
+import html2canvas from 'html2canvas'; // Import html2canvas
 
 // Interface for the fetched late arrival data from the main endpoint
 interface LateArrival {
@@ -24,6 +26,9 @@ const DepartmentLatecomers: React.FC = () => {
     const { departmentName } = useParams<{ departmentName: string }>();
     const navigate = useNavigate();
     const location = useLocation();
+    
+    // Create a ref for the element you want to download as a PDF
+    const tableRef = useRef<HTMLDivElement>(null); 
 
     // Destructure all filter data passed from PrincipalDashboard
     const { 
@@ -174,6 +179,38 @@ const DepartmentLatecomers: React.FC = () => {
         setShowSortOptions(false);
     };
 
+    // The new function to handle PDF download
+    const handleDownloadPDF = async () => {
+        if (tableRef.current) {
+            const canvas = await html2canvas(tableRef.current, {
+                scale: 2, // Increase scale for better quality
+                useCORS: true,
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 210; 
+            const pageHeight = 297;  
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            // Add the first page
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            // Add new pages for multi-page content
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            const title = `${decodeURIComponent(departmentName).replace(/-/g, ' ')} Latecomers (${getDisplayTitle()})`;
+            pdf.save(`${title.replace(/ /g, '_')}.pdf`);
+        }
+    };
+
     return (
         <div className="latecomers-container">
             <header className="latecomers-header">
@@ -183,33 +220,38 @@ const DepartmentLatecomers: React.FC = () => {
                 <h1 className="page-title">
                     {decodeURIComponent(departmentName).replace(/-/g, ' ')}
                 </h1>
-                <div className="sort-menu-container">
-                    <button onClick={() => setShowSortOptions(!showSortOptions)} className="menu-icon-button">
-                        &#9776;
+                <div className="button-group">
+                    <button onClick={handleDownloadPDF} className="download-button">
+                        <span className="icon">⬇️</span> Download as PDF
                     </button>
-                    {showSortOptions && (
-                        <div className="sort-options-dropdown">
-                            <button 
-                                onClick={() => handleSortByChange('today')} 
-                                className={`sort-button ${sortBy === 'today' ? 'active' : ''}`}
-                            >
-                                Latecomers ({getDisplayTitle()})
-                            </button>
-                            <button 
-                                onClick={() => handleSortByChange('aggregate')} 
-                                className={`sort-button ${sortBy === 'aggregate' ? 'active' : ''}`}
-                            >
-                                Highest Late Count (Overall)
-                            </button>
-                        </div>
-                    )}
+                    <div className="sort-menu-container">
+                        <button onClick={() => setShowSortOptions(!showSortOptions)} className="menu-icon-button">
+                            &#9776;
+                        </button>
+                        {showSortOptions && (
+                            <div className="sort-options-dropdown">
+                                <button 
+                                    onClick={() => handleSortByChange('today')} 
+                                    className={`sort-button ${sortBy === 'today' ? 'active' : ''}`}
+                                >
+                                    Latecomers ({getDisplayTitle()})
+                                </button>
+                                <button 
+                                    onClick={() => handleSortByChange('aggregate')} 
+                                    className={`sort-button ${sortBy === 'aggregate' ? 'active' : ''}`}
+                                >
+                                    Highest Late Count (Overall)
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 
             {isLoading ? (
                 <p className="loading-message">Loading students data...</p>
             ) : (
-                <div className="students-table-container">
+                <div className="students-table-container" ref={tableRef}>
                     {displayedStudents.length === 0 ? (
                         <p className="no-data-message">No latecomers found for {decodeURIComponent(departmentName).replace(/-/g, ' ')} for this period.</p>
                     ) : (
