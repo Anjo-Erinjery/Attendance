@@ -13,6 +13,19 @@ import {
 import '../styles/principaldashboard/PrincipalDashboard.css';
 import { useAuthStore } from '../store/authStore';
 
+// IMPORTANT: Include jsPDF and html2canvas CDN scripts
+// These scripts are necessary for PDF generation from HTML content.
+// Ensure these are loaded in your HTML file or globally accessible.
+// For example, you might add them in your public/index.html <head> or similar:
+/*
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+*/
+
+// Declare global jsPDF and html2canvas if loaded via CDN
+declare const html2canvas: any;
+declare const jspdf: any;
+
 // Interface for user data received from Django API.
 interface DjangoUserData {
     name: string;
@@ -32,6 +45,141 @@ interface PrincipalDashboardDjangoData {
     user: DjangoUserData;
     late_arrivals: DjangoLateArrival[];
 }
+
+// Separate component for RecentLateEntries for better code organization
+const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: string }> = ({ entries, filterMode }) => {
+    const formatTimestamp = (isoString: string) => {
+        if (!isoString) return 'N/A'; // Handle cases where timestamp might be missing
+        const date = new Date(isoString);
+        // Using 'en-IN' locale for 'hh:mm AM/PM' format
+        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+
+    const displayTableRows = () => {
+        if (filterMode === 'monthly') {
+            // For monthly mode, group by student and show total late count for the period
+            const studentMonthlyCounts = new Map<string, { count: number; batch: number; }>();
+            entries.forEach(entry => {
+                const key = entry.student_name;
+                studentMonthlyCounts.set(key, {
+                    count: (studentMonthlyCounts.get(key)?.count || 0) + 1,
+                    batch: entry.batch, // Include batch information
+                });
+            });
+            // Sort by highest late count
+            return Array.from(studentMonthlyCounts.entries())
+                .sort((a, b) => b[1].count - a[1].count)
+                .map(([name, data]) => (
+                    <tr key={name}>
+                        <td>{name}</td>
+                        <td>{data.batch}</td>
+                        <td>N/A</td> {/* Late arrival time is not applicable for monthly aggregate */}
+                        <td>{data.count}</td>
+                    </tr>
+                ));
+        } else {
+            // For currentDay, weekly, specificDate, show individual late entries
+            return entries.map((entry, index) => (
+                <tr key={index}>
+                    <td>{entry.student_name}</td>
+                    <td>{entry.batch}</td>
+                    <td>{formatTimestamp(entry.timestamp)}</td>
+                    <td>1</td> {/* Each individual entry is one late count */}
+                </tr>
+            ));
+        }
+    };
+
+    const handlePrintPdf = async () => {
+        if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+            console.error("html2canvas or jspdf library not loaded.");
+            alert("PDF generation libraries not loaded. Please ensure internet connectivity or check script tags.");
+            return;
+        }
+
+        const input = document.getElementById('recent-late-entries-table-section');
+        if (!input) {
+            console.error("Table section not found for PDF generation.");
+            alert("Could not find the table to generate PDF.");
+            return;
+        }
+
+        // Temporarily adjust styles for better PDF output if needed (e.g., remove scrollbars)
+        const originalOverflow = input.style.overflow;
+        input.style.overflow = 'visible'; // Make content fully visible for capture
+
+        try {
+            const canvas = await html2canvas(input, {
+                scale: 2, // Increase scale for better resolution in PDF
+                useCORS: true, // If you have external images or fonts, enable CORS
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt', // Use points for unit
+                format: 'a4'
+            });
+
+            const imgWidth = 595; // A4 width in pt (approx)
+            const pageHeight = 842; // A4 height in pt (approx)
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`Recent_Late_Entries_${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            // Restore original styles
+            input.style.overflow = originalOverflow;
+        }
+    };
+
+    return (
+        <section className="recent-latecomers-section">
+            <h3 className="section-title">Recent Late Entries ({filterMode === 'currentDay' ? 'Today' : 'This Period'})</h3>
+            <div className="header-actions" style={{ marginBottom: '15px' }}>
+                <button
+                    onClick={handlePrintPdf}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 ease-in-out"
+                >
+                    Download as PDF
+                </button>
+            </div>
+            <div id="recent-late-entries-table-section" className="recent-entries-table-container"> {/* Added ID for PDF generation */}
+                {entries.length > 0 ? (
+                    <table className="recent-latecomers-table">
+                        <thead>
+                            <tr>
+                                <th>STUDENT NAME</th>
+                                <th>BATCH</th>
+                                <th>LATE ARRIVAL TIME</th>
+                                <th>LATE COUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {displayTableRows()}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p className="no-data-message">No recent late entries available for this period.</p>
+                )}
+            </div>
+        </section>
+    );
+};
 
 const PrincipalDashboard: React.FC = () => {
     const navigate = useNavigate();
@@ -222,10 +370,10 @@ const PrincipalDashboard: React.FC = () => {
 
         if (selectedValue !== 'All') {
             if (principalDashboardDjangoData) {
-                const urlDepartmentName = encodeURIComponent(selectedValue.toLowerCase().replace(/\s/g, '-'));
-                navigate(`/department-dashboard/${urlDepartmentName}`, {
+                const urlSafeDepartment = encodeURIComponent(selectedValue.toLowerCase().replace(/\s/g, '-')); // Corrected
+                navigate(`/department-dashboard/${urlSafeDepartment}`, {
                     state: {
-                        allLateArrivalsData: principalDashboardDjangoData.late_arrivals,
+                        allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
                         filterDateInfo: {
                             mode: filterMode,
                             specificDate: specificDate,
@@ -313,36 +461,20 @@ const PrincipalDashboard: React.FC = () => {
         }));
     };
 
-    const recentLateEntriesDisplay = () => {
-        if (filterMode === 'monthly') {
-            const studentMonthlyCounts = new Map<string, { count: number; department: string; }>();
-            filteredLateArrivals.forEach(entry => {
-                const key = entry.student_name;
-                studentMonthlyCounts.set(key, {
-                    count: (studentMonthlyCounts.get(key)?.count || 0) + 1,
-                    department: entry.department,
-                });
-            });
-            return Array.from(studentMonthlyCounts.entries()).map(([name, data]) => ({
-                student_name: `${name} (${data.count})`,
-                department: data.department,
-                timestamp: ''
-            })).sort((a, b) => b.student_name.localeCompare(a.student_name));
-        } else {
-            return [...filteredLateArrivals]
-                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        }
+    const recentLateEntriesForDisplay = () => {
+        // Sort the entries to show the most recent first
+        const sortedEntries = [...filteredLateArrivals]
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+        // Return the sorted entries, the RecentLateEntries component will handle the display format
+        return sortedEntries;
     };
 
-    const formatTimestamp = (isoString: string) => {
-        const date = new Date(isoString);
-        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-    };
 
     const handleBarClick = (data: any, index: number) => {
         const department = data.department;
         const urlSafeDepartment = encodeURIComponent(department.toLowerCase().replace(/\s/g, '-'));
-        navigate(`/department-dashboard/${urlSafeDepartment}`, {
+        navigate(`/department-dashboard/${urlSafeDepartment}`, { // Corrected
             state: {
                 allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
                 filterDateInfo: {
@@ -367,13 +499,11 @@ const PrincipalDashboard: React.FC = () => {
     return (
         <div className="principal-dashboard">
             <header className="dashboard-header">
-                <h1 className="dashboard-title">Principal Dashboard (Late Attendance)</h1>
+                <h1 className="dashboard-title">Principal Dashboard</h1> {/* Changed from (Late Attendance) to (Latecomers) */}
                 <div className="header-actions">
-                    {principalDashboardDjangoData?.user?.name && (
-                        <span className="text-gray-700 font-medium mr-4">Welcome, {principalDashboardDjangoData.user.name}</span>
-                    )}
+                    <span className="text-gray-700 font-medium mr-4">Welcome Sir</span> {/* Changed to static "Welcome Sir, always" */}
                     <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 ease-in-out">
-                        Logout
+                        BACK
                     </button>
                 </div>
             </header>
@@ -481,26 +611,7 @@ const PrincipalDashboard: React.FC = () => {
 
                     {/* New position for Recent Late Entries section, now on the second row and spanning the full width */}
                     <div className="recent-entries-section-container">
-                        <section className="recent-latecomers-section">
-                            <h3 className="section-title">Recent Late Entries</h3>
-                            <div className="recent-entries-content">
-                                {recentLateEntriesDisplay().length > 0 ? (
-                                    recentLateEntriesDisplay().map((entry, index) => (
-                                        <div key={index} className="recent-entry-item">
-                                            <div className="entry-details">
-                                                <p className="entry-name">{entry.student_name}</p>
-                                                <p className="entry-department">{entry.department}</p>
-                                            </div>
-                                            {filterMode !== 'monthly' && entry.timestamp && (
-                                                <p className="entry-time">{formatTimestamp(entry.timestamp)}</p>
-                                            )}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="no-data-message">No recent late entries available for this period.</p>
-                                )}
-                            </div>
-                        </section>
+                        <RecentLateEntries entries={recentLateEntriesForDisplay()} filterMode={filterMode} />
                     </div>
                 </div>
             )}
