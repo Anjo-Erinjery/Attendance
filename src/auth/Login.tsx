@@ -28,7 +28,7 @@ const Login: React.FC = () => {
     }
   };
 
-  return (
+  return (<div className='main-login' >
     <div className="login-container">
       <h2>Login</h2>
 
@@ -52,6 +52,7 @@ const Login: React.FC = () => {
       <button onClick={handleLogin} disabled={isLoading}>
         {isLoading ? 'Logging in...' : 'Login'}
       </button>
+    </div>
     </div>
   );
 };

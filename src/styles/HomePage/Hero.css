@@ -1,37 +1,192 @@
+/* Hero.css */
 .hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 60px 40px;
-  background-color: #e0e0e0;
+  padding: 80px 60px;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+              url("https://gyaanarth.com/wp-content/uploads/2022/07/unnamed-file-scaled.jpg") center/cover no-repeat;
+  min-height: 600px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 60%);
 }
 
 .hero-content {
-  max-width: 50%;
+  max-width: 55%;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-content h1 {
-  font-size: 40px;
-  margin-bottom: 20px;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+  line-height: 1.2;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 
 .hero-content p {
-  font-size: 18px;
-  margin-bottom: 30px;
+  font-size: 1.25rem;
+  margin-bottom: 40px;
+  line-height: 1.6;
+  color: #e0e0e0;
+  max-width: 90%;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .explore-btn {
-  background-color: #333;
+  background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%);
   color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
+  padding: 16px 32px;
+  border: 2px solid #606060;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  
+
+}
+
+.explore-btn:hover {
+  background: linear-gradient(135deg, #5a5a5a 0%, #3c3c3c 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border-color: #808080;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: #ffffff;
+  padding: 16px 32px;
+  border: 2px solid #606060;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+  border-color: #808080;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hero-image {
+  position: relative;
+  z-index: 2;
 }
 
 .hero-image img {
   max-width: 500px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.hero-image img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 60px 40px;
+  }
+  
+  .hero-content {
+    max-width: 100%;
+    margin-bottom: 40px;
+  }
+  
+  .hero-content p {
+    max-width: 100%;
+  }
+  
+  .cta-buttons {
+    justify-content: center;
+  }
+  
+  .hero-stats {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 20px;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-content p {
+    font-size: 1.1rem;
+  }
+  
+  .explore-btn,
+  .secondary-btn {
+    padding: 14px 28px;
+    font-size: 16px;
+  }
+  
+  .hero-stats {
+    gap: 20px;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+  }
 }
