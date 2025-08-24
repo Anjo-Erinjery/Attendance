@@ -1,0 +1,232 @@
+/* This file combines and modifies styles from PrincipalDashboard.css and DepartmentLatecomers.css */
+
+/* General Dashboard Layout and Typography */
+
+.hod-dashboard {
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  padding: 30px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  width: 100%;
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+.dashboard-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.loading-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  padding: 50px;
+}
+.no-data-message {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Filter Section */
+.dashboard-filters {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  margin-bottom: 30px;
+}
+.filter-box {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 180px;
+}
+.filter-box label {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.filter-box select, .filter-box input {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease-in-out;
+}
+.filter-box select:focus, .filter-box input:focus {
+  outline: none;
+  border-color: #000;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+}
+
+/* Summary Cards */
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+.summary-card {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  text-align: center;
+  border: 1px solid #f0f2f5;
+  transition: transform 0.2s ease-in-out;
+}
+.summary-card:hover {
+  transform: translateY(-5px);
+}
+.card-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 12px;
+}
+.card-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* New Section for Recent Latecomers & Chart */
+.recent-latecomers-section, .dashboard-chart-section {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+.recent-entries-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.recent-entry-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease-in-out;
+  flex: 1;
+  min-width: 250px;
+}
+.recent-entry-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.entry-details {
+  display: flex;
+  flex-direction: column;
+  margin-right: 15px;
+}
+.student-name {
+  font-weight: 600;
+  color: #34495e;
+}
+.entry-time {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+.entry-batch {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2980b9;
+}
+.chart-container-bar {
+  width: 100%;
+  height: 300px;
+}
+
+/* Table and Data Display - adapted from DepartmentLatecomers.css */
+.students-table-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+    color: #333;
+}
+thead {
+    background-color: #f9f9f9;
+}
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+th {
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+tr:hover {
+    background-color: #fafafa;
+}
+
+.logout-button {
+  background-color: #c0392b;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+.logout-button:hover {
+  background-color: #a62a1c;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  text-align: center;
+}
+

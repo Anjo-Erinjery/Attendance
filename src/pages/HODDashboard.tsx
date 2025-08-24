@@ -12,7 +12,6 @@ import Footer from "../components/HomePage/Footer";
 import LatecomersPage from "../components/latecommers/Latecommers";
 // import { MoveLeft } from "lucide-react";
 
-
 const HODDashboard: React.FC = () => {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>

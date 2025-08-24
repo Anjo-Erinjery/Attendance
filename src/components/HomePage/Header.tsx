@@ -9,7 +9,7 @@ const Header: React.FC = () => {
     <header className="header">
       {/* The main logo/title for the college */}
       
-      <div className="logo" >St Thomas College</div>
+      <div className="logo" ></div>
       <nav className="nav-links">
         {/* Main navigation links */}
         <a href="#">About</a>

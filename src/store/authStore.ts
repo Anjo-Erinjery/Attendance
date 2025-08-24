@@ -10,7 +10,7 @@ import { jwtDecode } from 'jwt-decode';
 // Define the API base URL. Using import.meta.env for better environment management.
 // For development, it defaults to localhost:8000/api/.
 // This is the ONLY declaration for API_BASE_URL.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://scanbyte-backend.onrender.com/api/';
 
 
 // Define the structure of the decoded JWT token payload.

@@ -1,7 +1,7 @@
 import type { LoginCredentials, User } from '../types/auth.types';
 import { jwtDecode } from 'jwt-decode';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://scanbyte-backend.onrender.com/api';
 
 interface DecodedToken {
   token_type: string;

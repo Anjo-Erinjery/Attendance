@@ -32,7 +32,7 @@ const Dash: React.FC = () => {
 
   return (
     <>
-      <Header />
+      
       {renderDashboard()} {/* Call the function to conditionally render the dashboard */}
       <Footer />
     </>
