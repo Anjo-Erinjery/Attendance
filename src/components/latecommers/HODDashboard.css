@@ -247,3 +247,43 @@ tr:hover {
 .quick-filter-btn:hover {
     background-color: #e0e0e0;
 }
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.download-pdf-btn {
+    background-color: #85e26b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.download-pdf-btn:hover {
+    background-color: #6bc053;
+}
+
+.quick-filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.quick-filter-btn {
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.quick-filter-btn:hover {
+    background-color: #e0e0e0;
+}

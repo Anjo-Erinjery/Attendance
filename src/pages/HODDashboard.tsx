@@ -35,8 +35,9 @@ const HODDashboard: React.FC = () => {
               element={
                 <>
                 
-                  <Api />
-                  <RApi />
+                  {/* <Api />
+                  <RApi /> */}
+                  <LatecomersPage/>
                 </>
               }
             />
