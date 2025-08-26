@@ -5,7 +5,7 @@
 .hod-dashboard {
   font-family: 'Inter', sans-serif;
   color: #333;
-  padding: 35px;
+  padding: 30px;
   background-color: #f0f2f5;
   min-height: 100vh;
   width: 100%;
@@ -286,8 +286,7 @@ tr:hover {
 
 .quick-filter-btn:hover {
     background-color: #e0e0e0;
-}
-.download-buttons {
+}.download-buttons {
     display: flex;
     gap: 10px;
 }
