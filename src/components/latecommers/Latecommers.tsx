@@ -6,6 +6,9 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "./HODDashboard.css";
 
+// Declare XLSX globally since we're loading it via CDN
+declare const XLSX: any;
+
 // Interface for the fetched late arrival data
 interface LateArrival {
     student_name: string;
@@ -25,19 +28,14 @@ interface ApiResponse {
 interface StudentTableProps {
     students: LateArrival[];
     isDateRangeMode: boolean;
-    showAggregateColumn: boolean; // New prop to control aggregate column visibility
-    allStudents?: LateArrival[]; // All students data for calculating aggregates
-    tableRef?: React.RefObject<HTMLTableElement>; // Ref for PDF export
+    showAggregateColumn: boolean;
+    allStudents?: LateArrival[];
+    tableRef?: React.RefObject<HTMLTableElement>;
 }
 
 /**
  * A dynamic table component that displays either detailed daily records or a summary
  * of late counts for a date range.
- * @param {Object[]} students - The array of student late arrival data.
- * @param {boolean} isDateRangeMode - Flag to determine the table's display mode.
- * @param {boolean} showAggregateColumn - Flag to show aggregate column for all records.
- * @param {Object[]} allStudents - All student data for calculating aggregates.
- * @param {React.RefObject<HTMLTableElement>} tableRef - Ref for PDF export.
  */
 const StudentTable: React.FC<StudentTableProps> = ({ 
     students, 
@@ -67,6 +65,11 @@ const StudentTable: React.FC<StudentTableProps> = ({
     };
 
     const aggregateCounts = calculateAggregateCounts(allStudents);
+
+    // Sort students by timestamp in descending order (most recent first) for non-date-range mode
+    const sortedRecentStudents = [...students].sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 
     // Aggregate data for Date Range mode
     const aggregatedData = students.reduce((acc, curr) => {
@@ -119,7 +122,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                                     </tr>
                                 ))
                             ) : (
-                                students.map((student, index) => (
+                                sortedRecentStudents.map((student, index) => (
                                     <tr key={index}>
                                         <td data-label="Student Name">{student.student_name}</td>
                                         <td data-label="Date">{formatDate(student.timestamp)}</td>
@@ -327,6 +330,38 @@ const LatecomersPage: React.FC = () => {
         doc.save(`latecomers-report-${new Date().toISOString().slice(0, 10)}.pdf`);
     };
 
+    // Function to export table as Excel
+    const exportToExcel = () => {
+        if (!tableRef.current) return;
+        
+        try {
+            // Extract table data
+            const table = tableRef.current;
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent || '');
+            
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                Array.from(tr.querySelectorAll('td')).map(td => td.textContent || '')
+            );
+            
+            // Prepare worksheet data
+            const worksheetData = [headers, ...rows];
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Latecomers Report");
+            
+            // Generate Excel file and download
+            const fileName = `latecomers-report-${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        } catch (error) {
+            console.error("Error exporting to Excel:", error);
+            alert("Failed to export to Excel. Please try again.");
+        }
+    };
+
     // Effect to apply filters whenever filter states change
     useEffect(() => {
         const applyFilters = () => {
@@ -489,7 +524,7 @@ const LatecomersPage: React.FC = () => {
     const cardTitle = getCardTitle();
     const totalLatecomers = filteredStudents.length;
     const isDateRangeMode = filterMode === 'weekly' || filterMode === 'monthly' || filterMode === 'dateRange';
-    const showAggregateColumn = filterMode === 'all'; // Show aggregate column only for "All Records"
+    const showAggregateColumn = filterMode === 'all';
 
     return (
         <div className="hod-dashboard">
@@ -592,9 +627,14 @@ const LatecomersPage: React.FC = () => {
             <section className="recent-latecomers-section">
                 <div className="section-header">
                     <h3 className="section-title">Latecomers Details ({cardTitle})</h3>
-                    <button className="download-pdf-btn" onClick={exportToPDF}>
-                        Download PDF
-                    </button>
+                    <div className="download-buttons">
+                        <button className="download-pdf-btn" onClick={exportToPDF}>
+                            Download PDF
+                        </button>
+                        <button className="download-excel-btn" onClick={exportToExcel}>
+                            Download Excel
+                        </button>
+                    </div>
                 </div>
                 <StudentTable 
                     students={filteredStudents} 

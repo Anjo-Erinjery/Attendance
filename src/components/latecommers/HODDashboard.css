@@ -5,7 +5,7 @@
 .hod-dashboard {
   font-family: 'Inter', sans-serif;
   color: #333;
-  padding: 30px;
+  padding: 35px;
   background-color: #f0f2f5;
   min-height: 100vh;
   width: 100%;
@@ -286,4 +286,23 @@ tr:hover {
 
 .quick-filter-btn:hover {
     background-color: #e0e0e0;
+}
+.download-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.download-excel-btn {
+    background-color: #21a366;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.download-excel-btn:hover {
+    background-color: #1a8a57;
 }
