@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Bar, Tooltip } from 'recharts';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import "./HODDashboard.css";
+
+// Declare XLSX globally since we're loading it via CDN
+declare const XLSX: any;
 
 // Interface for the fetched late arrival data
 interface LateArrival {
@@ -23,23 +28,21 @@ interface ApiResponse {
 interface StudentTableProps {
     students: LateArrival[];
     isDateRangeMode: boolean;
-    showAggregateColumn: boolean; // New prop to control aggregate column visibility
-    allStudents?: LateArrival[]; // All students data for calculating aggregates
+    showAggregateColumn: boolean;
+    allStudents?: LateArrival[];
+    tableRef?: React.RefObject<HTMLTableElement>;
 }
 
 /**
  * A dynamic table component that displays either detailed daily records or a summary
  * of late counts for a date range.
- * @param {Object[]} students - The array of student late arrival data.
- * @param {boolean} isDateRangeMode - Flag to determine the table's display mode.
- * @param {boolean} showAggregateColumn - Flag to show aggregate column for all records.
- * @param {Object[]} allStudents - All student data for calculating aggregates.
  */
 const StudentTable: React.FC<StudentTableProps> = ({ 
     students, 
     isDateRangeMode, 
     showAggregateColumn,
-    allStudents = [] 
+    allStudents = [],
+    tableRef
 }) => {
     // Helper function to format the arrival time
     const formatTime = (timestamp: string) => {
@@ -63,6 +66,11 @@ const StudentTable: React.FC<StudentTableProps> = ({
 
     const aggregateCounts = calculateAggregateCounts(allStudents);
 
+    // Sort students by timestamp in descending order (most recent first) for non-date-range mode
+    const sortedRecentStudents = [...students].sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
     // Aggregate data for Date Range mode
     const aggregatedData = students.reduce((acc, curr) => {
         acc[curr.student_name] = (acc[curr.student_name] || 0) + 1;
@@ -74,17 +82,17 @@ const StudentTable: React.FC<StudentTableProps> = ({
         .sort(([, a], [, b]) => b - a);
 
     return (
-        <div className="students-table-container">
+        <div className="hod-students-table-container">
             {isDateRangeMode && sortedStudents.length === 0 && students.length === 0 && (
-                <p className="no-data-message">No latecomers found for this date range.</p>
+                <p className="hod-no-data-message">No latecomers found for this date range.</p>
             )}
             {!isDateRangeMode && students.length === 0 && (
-                <p className="no-data-message">No latecomers found for the selected filter.</p>
+                <p className="hod-no-data-message">No latecomers found for the selected filter.</p>
             )}
 
             {(isDateRangeMode && sortedStudents.length > 0) || (!isDateRangeMode && students.length > 0) ? (
                 <div className="overflow-x-auto">
-                    <table>
+                    <table ref={tableRef} className="hod-students-table">
                         <thead>
                             <tr>
                                 <th>Student Name</th>
@@ -114,7 +122,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                                     </tr>
                                 ))
                             ) : (
-                                students.map((student, index) => (
+                                sortedRecentStudents.map((student, index) => (
                                     <tr key={index}>
                                         <td data-label="Student Name">{student.student_name}</td>
                                         <td data-label="Date">{formatDate(student.timestamp)}</td>
@@ -144,6 +152,7 @@ const LatecomersPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { user,token, isAuthenticated, logout } = useAuthStore();
     const navigate = useNavigate();
+    const tableRef = useRef<HTMLTableElement>(null);
 
     const [department, setHodDepartment] = useState<string>('');
     
@@ -156,6 +165,7 @@ const LatecomersPage: React.FC = () => {
     // New states for Date Range filter
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
+    const [showDateRange, setShowDateRange] = useState<boolean>(false);
     
     // Effect to fetch all data on initial load
     useEffect(() => {
@@ -225,9 +235,16 @@ const LatecomersPage: React.FC = () => {
     const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const newFilterMode = event.target.value;
         setFilterMode(newFilterMode);
+        
         // Reset date fields when mode changes
         if (newFilterMode !== 'specificDate') setSpecificDate('');
-        if (newFilterMode !== 'dateRange') {
+        
+        // Show date range inputs for weekly and monthly
+        if (newFilterMode === 'weekly' || newFilterMode === 'monthly') {
+            setShowDateRange(true);
+            setPredefinedDateRange(newFilterMode);
+        } else {
+            setShowDateRange(false);
             setStartDate('');
             setEndDate('');
         }
@@ -256,16 +273,16 @@ const LatecomersPage: React.FC = () => {
         // Don't change filterMode when selecting batch
     };
 
-    // Function to set date range for predefined periods (last week, last month)
+    // Function to set date range for predefined periods (weekly, monthly)
     const setPredefinedDateRange = (period: string) => {
         const today = new Date();
         const startDate = new Date();
         
         switch(period) {
-            case 'lastWeek':
+            case 'weekly':
                 startDate.setDate(today.getDate() - 7);
                 break;
-            case 'lastMonth':
+            case 'monthly':
                 startDate.setMonth(today.getMonth() - 1);
                 break;
             default:
@@ -274,7 +291,75 @@ const LatecomersPage: React.FC = () => {
         
         setStartDate(startDate.toISOString().split('T')[0]);
         setEndDate(today.toISOString().split('T')[0]);
-        setFilterMode('dateRange');
+    };
+
+    // Function to export table as PDF
+    const exportToPDF = () => {
+        if (!tableRef.current) return;
+        
+        const doc = new jsPDF();
+        const title = `Latecomers Report - ${getCardTitle()}`;
+        
+        // Add title
+        doc.setFontSize(16);
+        doc.text(title, 14, 15);
+        
+        // Add department and date info
+        doc.setFontSize(12);
+        doc.text(`Department: ${department}`, 14, 25);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
+        
+        // Extract table data
+        const table = tableRef.current;
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent || '');
+        
+        const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+            Array.from(tr.querySelectorAll('td')).map(td => td.textContent || '')
+        );
+        
+        // Generate PDF table
+        autoTable(doc, {
+            head: [headers],
+            body: rows,
+            startY: 40,
+            styles: { fontSize: 10 },
+            headStyles: { fillColor: [85, 226, 107] }
+        });
+        
+        // Save the PDF
+        doc.save(`latecomers-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+    };
+
+    // Function to export table as Excel
+    const exportToExcel = () => {
+        if (!tableRef.current) return;
+        
+        try {
+            // Extract table data
+            const table = tableRef.current;
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent || '');
+            
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                Array.from(tr.querySelectorAll('td')).map(td => td.textContent || '')
+            );
+            
+            // Prepare worksheet data
+            const worksheetData = [headers, ...rows];
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Latecomers Report");
+            
+            // Generate Excel file and download
+            const fileName = `latecomers-report-${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        } catch (error) {
+            console.error("Error exporting to Excel:", error);
+            alert("Failed to export to Excel. Please try again.");
+        }
     };
 
     // Effect to apply filters whenever filter states change
@@ -315,7 +400,7 @@ const LatecomersPage: React.FC = () => {
                 dateMatch = arrivalDate === today;
             } else if (mode === 'specificDate' && date) {
                 dateMatch = arrivalDate === date;
-            } else if (mode === 'dateRange') {
+            } else if (mode === 'weekly' || mode === 'monthly' || mode === 'dateRange') {
                 if (startDateObj && endDateObj) {
                     // Set end date to end of day for inclusive comparison
                     const endDateInclusive = new Date(endDateObj);
@@ -396,14 +481,14 @@ const LatecomersPage: React.FC = () => {
             .slice(0, 5);
     };
 
-    const chartData = filterMode === 'dateRange' 
+    const chartData = (filterMode === 'weekly' || filterMode === 'monthly' || filterMode === 'dateRange') 
         ? getTopLatecomersChartData(filteredStudents)
-        : getDailyChartData(filteredStudents); // Use filteredStudents instead of students
+        : getDailyChartData(filteredStudents);
 
     if (loading) {
         return (
             <div className="hod-dashboard flex items-center justify-center min-h-screen">
-                <p className="loading-message">Loading HOD dashboard data...</p>
+                <p className="hod-loading-message">Loading HOD dashboard data...</p>
             </div>
         );
     }
@@ -415,6 +500,10 @@ const LatecomersPage: React.FC = () => {
                 return 'Today';
             case 'specificDate':
                 return specificDate || 'Specific Date';
+            case 'weekly':
+                return 'Last Week';
+            case 'monthly':
+                return 'Last Month';
             case 'dateRange':
                 if (startDate && endDate) {
                     return `${startDate} to ${endDate}`;
@@ -434,32 +523,32 @@ const LatecomersPage: React.FC = () => {
 
     const cardTitle = getCardTitle();
     const totalLatecomers = filteredStudents.length;
-    const isDateRangeMode = filterMode === 'dateRange';
-    const showAggregateColumn = filterMode === 'all'; // Show aggregate column only for "All Records"
+    const isDateRangeMode = filterMode === 'weekly' || filterMode === 'monthly' || filterMode === 'dateRange';
+    const showAggregateColumn = filterMode === 'all';
 
     return (
         <div className="hod-dashboard">
-            <header className="dashboard-header">
-                <h1 className="dashboard-title">HOD Dashboard: {department}</h1>
-                <div className="header-actions">
-                    <button className="logout-button" onClick={logout}>Logout</button>
+            <header className="hod-dashboard-header">
+                <h1 className="hod-dashboard-title">HOD Dashboard: {department}</h1>
+                <div className="hod-header-actions">
+                    <span className="text-gray-700 font-medium mr-4">Welcome , {user?.department} HOD</span>
+                    <button className="hod-logout-button" onClick={logout}>Logout</button>
                 </div>
             </header>
             
-            <section className="dashboard-filters">
-                <div className="filter-box">
+            <section className="hod-dashboard-filters">
+                <div className="hod-filter-box">
                     <label htmlFor="date-filter">Filter By:</label>
                     <select id="date-filter" value={filterMode} onChange={handleFilterModeChange}>
                         <option value="today">Today</option>
                         <option value="specificDate">Specific Date</option>
-                        <option value="dateRange">Date Range</option>
-                        <option value="lastWeek">Last Week</option>
-                        <option value="lastMonth">Last Month</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
                         <option value="all">All Records</option>
                     </select>
                 </div>
                 {filterMode === 'specificDate' && (
-                    <div className="filter-box">
+                    <div className="hod-filter-box">
                         <label htmlFor="date-input">Select Date:</label>
                         <input
                             id="date-input"
@@ -469,9 +558,9 @@ const LatecomersPage: React.FC = () => {
                         />
                     </div>
                 )}
-                {filterMode === 'dateRange' && (
+                {showDateRange && (
                     <>
-                        <div className="filter-box">
+                        <div className="hod-filter-box">
                             <label htmlFor="start-date-input">Start Date:</label>
                             <input
                                 id="start-date-input"
@@ -480,7 +569,7 @@ const LatecomersPage: React.FC = () => {
                                 onChange={handleStartDateChange}
                             />
                         </div>
-                        <div className="filter-box">
+                        <div className="hod-filter-box">
                             <label htmlFor="end-date-input">End Date:</label>
                             <input
                                 id="end-date-input"
@@ -491,7 +580,7 @@ const LatecomersPage: React.FC = () => {
                         </div>
                     </>
                 )}
-                <div className="filter-box">
+                <div className="hod-filter-box">
                     <label htmlFor="batch-filter">Filter By Batch:</label>
                     <select id="batch-filter" value={selectedBatch} onChange={handleBatchChange}>
                         <option value="All">All</option>
@@ -504,18 +593,18 @@ const LatecomersPage: React.FC = () => {
                 </div>
             </section>
 
-            <section className="dashboard-summary-grid">
-                <div className="summary-card">
-                    <p className="card-label">Total Latecomers ({cardTitle})</p>
-                    <h2 className="card-value">{totalLatecomers}</h2>
+            <section className="hod-dashboard-summary-grid">
+                <div className="hod-summary-card">
+                    <p className="hod-card-label">Total Latecomers ({cardTitle})</p>
+                    <h2 className="hod-card-value">{totalLatecomers}</h2>
                 </div>
             </section>
             
-            <section className="dashboard-chart-section">
-                <h3 className="section-title">
+            <section className="hod-dashboard-chart-section">
+                <h3 className="hod-section-title">
                     {isDateRangeMode ? "Top 5 Latecomers (Selected Range)" : "Latecomers (Last 7 Days)"}
                 </h3>
-                <div className="chart-container-bar">
+                <div className="hod-chart-container-bar">
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart
@@ -530,23 +619,34 @@ const LatecomersPage: React.FC = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <p className="no-data-message">No latecomer data available for the selected period.</p>
+                        <p className="hod-no-data-message">No latecomer data available for the selected period.</p>
                     )}
                 </div>
             </section>
 
-            <section className="recent-latecomers-section">
-                <h3 className="section-title">Latecomers Details ({cardTitle})</h3>
+            <section className="hod-recent-latecomers-section">
+                <div className="hod-section-header">
+                    <h3 className="hod-section-title">Latecomers Details ({cardTitle})</h3>
+                    <div className="hod-download-buttons">
+                        <button className="hod-download-pdf-btn" onClick={exportToPDF}>
+                            Download PDF
+                        </button>
+                        <button className="hod-download-excel-btn" onClick={exportToExcel}>
+                            Download Excel
+                        </button>
+                    </div>
+                </div>
                 <StudentTable 
                     students={filteredStudents} 
                     isDateRangeMode={isDateRangeMode} 
                     showAggregateColumn={showAggregateColumn}
                     allStudents={students}
+                    tableRef={tableRef}
                 />
             </section>
 
             {error && (
-                <div className="error-message">
+                <div className="hod-error-message">
                     <p>{error}</p>
                 </div>
             )}
