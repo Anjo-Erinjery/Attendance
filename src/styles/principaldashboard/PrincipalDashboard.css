@@ -98,10 +98,12 @@
         "summary chart"
         "entries entries";
     /* MODIFIED: The first column for the summary card is now `minmax(250px, auto)`. 
-                 This gives it a minimum size of 250px and allows it to grow or shrink based on content,
-                 while the chart column takes up the rest of the available space. */
+             This gives it a minimum size of 250px and allows it to grow or shrink based on content,
+             while the chart column takes up the rest of the available space. */
     grid-template-columns: minmax(250px, auto) 1fr;
-    gap: 30px;
+    /* --- MODIFIED: Reduced the row gap (vertical spacing) to make it shorter --- */
+    grid-row-gap: 5px; /* Reduced vertical gap between rows further */
+    grid-column-gap: 15px; /* Maintain horizontal gap */
 }
 
 .summary-card-container {
@@ -118,12 +120,14 @@
 
 /* Summary Cards */
 .summary-card {
-    background-color: #fff;
+    /* MODIFIED: Applied the color from the image - a light greyish-blue */
+    background-color: #e0eeee; /* Approximately the color from the image */
+    color: #333; /* Darker text for good contrast */
     padding: 0.55555555555px;
     border-radius: 10px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1); /* Adjusted shadow for lighter background */
     text-align: center;
-    border: 1px solid #f0f2f5;
+    border: 1px solid #c0d0d0; /* A slightly darker border to match */
     transition: transform 0.2s ease-in-out;
     display: flex;
     flex-direction: column;
@@ -134,19 +138,20 @@
 
 .summary-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Enhanced shadow on hover */
 }
 
 .card-label {
     font-size: 1rem;
     font-weight: 600;
-    color: #6c757d;
+    color: #555; /* Darker grey for label */
     margin-bottom: 10px;
 }
 
 .card-value {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #2c3e50; /* Darker color for value */
     margin: 0;
 }
 
