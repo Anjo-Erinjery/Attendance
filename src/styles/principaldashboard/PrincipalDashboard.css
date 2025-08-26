@@ -3,12 +3,8 @@
     font-family: 'Inter', sans-serif;
     color: #333;
     padding: 30px;
-    background-color: #f0f2f5;
+    background-color: #f0f2f5; /* A softer, more modern light gray */
     min-height: 100vh;
-    transform: scale(0.5);
-    transform-origin: top left;
-    width: 200%;
-    height: 200%;
 }
 
 .dashboard-header {
@@ -18,20 +14,20 @@
     padding: 25px;
     background-color: #fff;
     border-radius: 12px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08); /* Subtle grey shadow */
     margin-bottom: 30px;
 }
 
 .dashboard-title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #2c3e50; /* A dark charcoal for better readability */
 }
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 15px; /* Added gap for better spacing between buttons/elements */
 }
 
 .loading-message {
@@ -94,16 +90,13 @@
 /* Updated grid layout for a better visual balance */
 .dashboard-main-grid {
     display: grid;
+    /* Placing summary and chart on the top row, entries below them */
     grid-template-areas:
         "summary chart"
         "entries entries";
-    /* MODIFIED: The first column for the summary card is now `minmax(250px, auto)`. 
-             This gives it a minimum size of 250px and allows it to grow or shrink based on content,
-             while the chart column takes up the rest of the available space. */
-    grid-template-columns: minmax(250px, auto) 1fr;
-    /* --- MODIFIED: Reduced the row gap (vertical spacing) to make it shorter --- */
-    grid-row-gap: 5px; /* Reduced vertical gap between rows further */
-    grid-column-gap: 15px; /* Maintain horizontal gap */
+    /* Adjusted column widths for a more balanced look */
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
 }
 
 .summary-card-container {
@@ -120,38 +113,36 @@
 
 /* Summary Cards */
 .summary-card {
-    /* MODIFIED: Applied the color from the image - a light greyish-blue */
-    background-color: #e0eeee; /* Approximately the color from the image */
-    color: #333; /* Darker text for good contrast */
-    padding: 0.55555555555px;
-    border-radius: 10px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1); /* Adjusted shadow for lighter background */
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
     text-align: center;
-    border: 1px solid #c0d0d0; /* A slightly darker border to match */
+    border: 1px solid #f0f2f5;
     transition: transform 0.2s ease-in-out;
+    /* Added some padding and flexbox for better centering */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 95%;
-    /* REMOVED: The `max-width` property is no longer necessary as the `grid-template-columns` handles the size. */
+    height: 100%;
 }
 
 .summary-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Enhanced shadow on hover */
 }
 
 .card-label {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    color: #555; /* Darker grey for label */
-    margin-bottom: 10px;
+    color: #6c757d;
+    margin-bottom: 12px;
 }
 
 .card-value {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 700;
-    color: #2c3e50; /* Darker color for value */
+    color: #2c3e50;
+    /* Add some visual breathing room */
     margin: 0;
 }
 
@@ -186,14 +177,14 @@
     flex-direction: column;
 }
 
-.recent-entries-table-container {
+.recent-entries-table-container { /* New container for table scrolling */
     flex-grow: 1;
-    overflow-x: auto;
+    overflow-x: auto; /* Enable horizontal scrolling for narrow screens */
 }
 
 .recent-latecomers-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: collapse; /* Collapse borders for a cleaner look */
     margin-top: 15px;
     font-size: 0.95rem;
 }
@@ -216,41 +207,42 @@
 }
 
 .recent-latecomers-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: none; /* No border for the last row */
 }
 
 .recent-latecomers-table tbody tr:hover {
-    background-color: #f0f2f5;
+    background-color: #f0f2f5; /* Subtle hover effect */
 }
 
 /* Styles for the Download as PDF button - Greyscale */
 .recent-latecomers-section .header-actions button {
-    background-color: #6c757d;
+    background-color: #6c757d; /* Medium grey, similar to card labels */
     color: white;
     padding: 10px 20px;
     border: none;
-    border-radius: 8px;
+    border-radius: 8px; /* Rounded corners */
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle black shadow */
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    display: inline-flex;
+    display: inline-flex; /* Align text and potentially an icon */
     align-items: center;
-    gap: 8px;
+    gap: 8px; /* Space for an icon if added */
 }
 
 .recent-latecomers-section .header-actions button:hover {
-    background-color: #5a6268;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    background-color: #5a6268; /* Slightly darker grey on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
 }
 
 .recent-latecomers-section .header-actions button:active {
-    background-color: #000000;
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #000000; /* Even darker grey on click */
+    transform: translateY(0); /* Press down effect */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Smaller shadow on click */
 }
+
 
 /* Media Queries for Responsiveness */
 @media (max-width: 1024px) {
@@ -266,9 +258,6 @@
 @media (max-width: 768px) {
     .principal-dashboard {
         padding: 15px;
-        transform: none;
-        width: auto;
-        height: auto;
     }
 
     .dashboard-header {
@@ -309,6 +298,6 @@
     }
 
     .section-title {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 }
