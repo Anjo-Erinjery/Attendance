@@ -8,7 +8,8 @@ import {
     CartesianGrid,
     Bar,
     Tooltip,
-    Legend
+    Legend,
+    Cell // NEW: Imported Cell for individual bar coloring
 } from 'recharts';
 import '../styles/principaldashboard/PrincipalDashboard.css';
 import { useAuthStore } from '../store/authStore';
@@ -48,7 +49,8 @@ interface PrincipalDashboardDjangoData {
 }
 
 // Separate component for RecentLateEntries for better code organization
-const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: string }> = ({ entries, filterMode }) => {
+// MODIFIED: Added totalLatecomers prop
+const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: string, totalLatecomers: number }> = ({ entries, filterMode, totalLatecomers }) => {
     const formatTimestamp = (isoString: string) => {
         if (!isoString) return 'N/A'; // Handle cases where timestamp might be missing
         const date = new Date(isoString);
@@ -57,37 +59,40 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
     };
 
     const displayTableRows = () => {
-        if (filterMode === 'monthly') {
-            // For monthly mode, group by student and show total late count for the period
-            const studentMonthlyCounts = new Map<string, { count: number; batch: string; ugpg: string }>(); // ugpg added
+        // Aggregate logic for 'weekly' and 'monthly'
+        if (filterMode === 'weekly' || filterMode === 'monthly') {
+            const studentPeriodCounts = new Map<string, { count: number; batch: string; ugpg: string; department: string }>(); // MODIFIED: Added department
             entries.forEach(entry => {
                 const key = entry.student_name;
-                studentMonthlyCounts.set(key, {
-                    count: (studentMonthlyCounts.get(key)?.count || 0) + 1,
+                studentPeriodCounts.set(key, {
+                    count: (studentPeriodCounts.get(key)?.count || 0) + 1,
                     batch: entry.batch,
-                    ugpg: entry.ugpg, // Store ugpg here
+                    ugpg: entry.ugpg,
+                    department: entry.department, // MODIFIED: Storing department here
                 });
             });
             // Sort by highest late count
-            return Array.from(studentMonthlyCounts.entries())
+            return Array.from(studentPeriodCounts.entries())
                 .sort((a, b) => b[1].count - a[1].count)
                 .map(([name, data]) => (
                     <tr key={name}>
                         <td data-label="Student Name">{name}</td>
+                        <td data-label="Department">{data.department}</td> {/* NEW: Display department */}
                         <td data-label="Batch">{data.batch}</td>
                         <td data-label="UG/PG">{data.ugpg}</td> {/* Display UG/PG */}
-                        <td data-label="Late Arrival Time">N/A</td> {/* Late arrival time is not applicable for monthly aggregate */}
+                        {/* Late arrival time is not applicable for weekly/monthly aggregate, so removed */}
                         <td data-label="Late Count">{data.count}</td>
                     </tr>
                 ));
         } else {
-            // For currentDay, weekly, specificDate, show individual late entries
+            // For 'currentDay' and 'specificDate', show individual late entries
             return entries.map((entry, index) => (
                 <tr key={index}>
                     <td data-label="Student Name">{entry.student_name}</td>
+                    <td data-label="Department">{entry.department}</td> {/* NEW: Display department */}
                     <td data-label="Batch">{entry.batch}</td>
                     <td data-label="UG/PG">{entry.ugpg}</td> {/* Display UG/PG */}
-                    <td data-label="Late Arrival Time">{formatTimestamp(entry.timestamp)}</td>
+                    <td data-label="Late Arrival Time">{formatTimestamp(entry.timestamp)}</td> {/* Only show time for individual entries */}
                     <td data-label="Late Count">1</td> {/* Each individual entry is one late count */}
                 </tr>
             ));
@@ -127,7 +132,7 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
 
             const imgWidth = 595; // A4 width in pt (approx)
             const pageHeight = 842; // A4 height in pt (approx)
-            const imgHeight = canvas.height * imgWidth / canvas.width;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
             let heightLeft = imgHeight;
             let position = 0;
 
@@ -151,6 +156,10 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
         }
     };
 
+    // Determine colSpan for the total latecomers cell based on conditional columns
+    // MODIFIED: Increased colSpan by 1 due to the new Department column
+    const totalColSpan = (filterMode !== 'weekly' && filterMode !== 'monthly') ? 5 : 4; 
+
     return (
         <section className="recent-latecomers-section">
             <h3 className="section-title">Recent Late Entries ({filterMode === 'currentDay' ? 'Today' : 'This Period'})</h3>
@@ -168,13 +177,22 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
                         <thead>
                             <tr>
                                 <th>STUDENT NAME</th>
+                                <th>DEPARTMENT</th> {/* NEW: Added Department header */}
                                 <th>BATCH</th>
                                 <th>UG/PG</th> {/* ADDED: New header for UG/PG */}
-                                <th>LATE ARRIVAL TIME</th>
+                                {/* FIX: Replaced conditional && with ternary for <th>LATE ARRIVAL TIME</th> to resolve JSX children error */}
+                                {(filterMode !== 'weekly' && filterMode !== 'monthly') ? <th>LATE ARRIVAL TIME</th> : null} 
                                 <th>LATE COUNT</th>
                             </tr>
                         </thead>
                         <tbody>{displayTableRows()}</tbody>
+                        {/* NEW: Table footer to display total latecomers */}
+                        <tfoot>
+                            <tr>
+                                <td colSpan={totalColSpan} style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Latecomers:</td>
+                                <td style={{ fontWeight: 'bold' }}>{totalLatecomers}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 ) : (
                     <p className="no-data-message">No recent late entries available for this period.</p>
@@ -195,8 +213,6 @@ const PrincipalDashboard: React.FC = () => {
 
     const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
     const [departments, setDepartments] = useState<string[]>(['All']);
-    // REMOVED: selectedBatch
-    // REMOVED: batches
 
     // ADDED: State for UG/PG filter
     const [selectedUgPg, setSelectedUgPg] = useState<string | 'All'>('All');
@@ -204,6 +220,7 @@ const PrincipalDashboard: React.FC = () => {
 
     const [principalDashboardDjangoData, setPrincipalDashboardDjangoData] = useState<PrincipalDashboardDjangoData | null>(null);
     const [isLoadingPrincipalDashboardDjangoData, setIsLoadingPrincipalDashboardDjangoData] = useState(true);
+    // FIX: errorPrincipalDashboardDjango is declared but never read. Now used to display error.
     const [errorPrincipalDashboardDjango, setErrorPrincipalDashboardDjango] = useState<string | null>(null);
 
     // Helper to format date to YYYY-MM-DD
@@ -241,6 +258,89 @@ const PrincipalDashboard: React.FC = () => {
         return d;
     };
 
+    // --- START: Moved handler definitions here to ensure they are defined before use ---
+    const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const mode = event.target.value;
+        setFilterMode(mode);
+        const now = new Date();
+        if (mode === 'currentDay') {
+            setSpecificDate('');
+            setStartDate('');
+            setEndDate('');
+        } else if (mode === 'weekly') {
+            setStartDate(formatDateToISO(getStartOfWeek(now)));
+            setEndDate(formatDateToISO(getEndOfWeek(now)));
+            setSpecificDate('');
+        } else if (mode === 'monthly') {
+            setStartDate(formatDateToISO(getStartOfMonth(now)));
+            setEndDate(formatDateToISO(getEndOfMonth(now)));
+            setSpecificDate('');
+        } else if (mode === 'specificDate') {
+            setStartDate('');
+            setEndDate('');
+        }
+    };
+
+    const handleSpecificDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSpecificDate(event.target.value);
+        setFilterMode('specificDate'); // Set mode explicitly when date is picked
+        setStartDate('');
+        setEndDate('');
+    };
+
+    const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setStartDate(event.target.value);
+    };
+
+    const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEndDate(event.target.value);
+    };
+
+    const handleUgPgChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedUgPg(event.target.value);
+    };
+
+    const handleDepartmentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedValue = event.target.value;
+        setSelectedDepartment(selectedValue);
+
+        if (selectedValue !== 'All') {
+            if (principalDashboardDjangoData) {
+                const urlSafeDepartment = encodeURIComponent(selectedValue.toLowerCase().replace(/\s/g, '-'));
+                navigate(`/department-dashboard/${urlSafeDepartment}`, {
+                    state: {
+                        allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
+                        filterDateInfo: {
+                            mode: filterMode,
+                            specificDate: specificDate,
+                            startDate: startDate,
+                            endDate: endDate
+                        },
+                        selectedUgPg: selectedUgPg
+                    }
+                });
+            }
+        }
+    };
+
+    const handleBarClick = (data: any) => {
+        const department = data.department;
+        const urlSafeDepartment = encodeURIComponent(department.toLowerCase().replace(/\s/g, '-'));
+        navigate(`/department-dashboard/${urlSafeDepartment}`, {
+            state: {
+                allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
+                filterDateInfo: {
+                    mode: filterMode,
+                    specificDate: specificDate,
+                    startDate: startDate,
+                    endDate: endDate
+                },
+                selectedUgPg: selectedUgPg
+            }
+        });
+    };
+    // --- END: Moved handler definitions here ---
+
     useEffect(() => {
         if (!isAuthenticated) {
             console.warn("User not authenticated, redirecting to login.");
@@ -262,7 +362,7 @@ const PrincipalDashboard: React.FC = () => {
             }
 
             setIsLoadingPrincipalDashboardDjangoData(true);
-            setErrorPrincipalDashboardDjango(null);
+            setErrorPrincipalDashboardDjango(null); // Clear previous errors
 
             try {
                 const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'https://scanbyte-backend.onrender.com/api';
@@ -302,8 +402,6 @@ const PrincipalDashboard: React.FC = () => {
                 const uniqueDepartments = Array.from(new Set(data.late_arrivals.map(arrival => arrival.department)));
                 setDepartments(['All', ...uniqueDepartments]);
 
-                // REMOVED: Batch specific logic
-                // ADDED: UG/PG specific logic
                 const uniqueUgPg = Array.from(new Set(data.late_arrivals.map(arrival => arrival.ugpg)));
                 setUgPgOptions(['All', ...uniqueUgPg.sort((a, b) => String(a).localeCompare(String(b)))]);
 
@@ -314,7 +412,7 @@ const PrincipalDashboard: React.FC = () => {
                 } else if (filterMode === 'weekly') {
                     setStartDate(formatDateToISO(getStartOfWeek(now)));
                     setEndDate(formatDateToISO(getEndOfWeek(now)));
-                } else if (filterMode === 'monthly') {
+                } else if (filterMode === 'monthly') { // Corrected `mode` to `filterMode`
                     setStartDate(formatDateToISO(getStartOfMonth(now)));
                     setEndDate(formatDateToISO(getEndOfMonth(now)));
                 }
@@ -332,90 +430,14 @@ const PrincipalDashboard: React.FC = () => {
         }
     }, [isAuthenticated, token, navigate]);
 
-    const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const mode = event.target.value;
-        setFilterMode(mode);
-        const now = new Date();
-        if (mode === 'currentDay') {
-            setSpecificDate('');
-            setStartDate('');
-            setEndDate('');
-        } else if (mode === 'weekly') {
-            setStartDate(formatDateToISO(getStartOfWeek(now)));
-            setEndDate(formatDateToISO(getEndOfWeek(now)));
-            setSpecificDate('');
-        } else if (mode === 'monthly') {
-            setStartDate(formatDateToISO(getStartOfMonth(now)));
-            setEndDate(formatDateToISO(getEndOfMonth(now)));
-            setSpecificDate('');
-        } else if (mode === 'specificDate') {
-            setStartDate('');
-            setEndDate('');
-        }
-    };
-
-    const handleSpecificDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSpecificDate(event.target.value);
-        setFilterMode('specificDate'); // Set mode explicitly when date is picked
-        setStartDate('');
-        setEndDate('');
-    };
-
-    const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setStartDate(event.target.value);
-    };
-
-    const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setEndDate(event.target.value);
-    };
-
-    // REMOVED: handleBatchChange
-
-    // ADDED: Handler for UG/PG filter change
-    const handleUgPgChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedUgPg(event.target.value);
-    };
-
-    const handleDepartmentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedValue = event.target.value;
-        setSelectedDepartment(selectedValue);
-
-        if (selectedValue !== 'All') {
-            if (principalDashboardDjangoData) {
-                const urlSafeDepartment = encodeURIComponent(selectedValue.toLowerCase().replace(/\s/g, '-')); // Corrected
-                navigate(`/department-dashboard/${urlSafeDepartment}`, {
-                    state: {
-                        allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
-                        filterDateInfo: {
-                            mode: filterMode,
-                            specificDate: specificDate,
-                            startDate: startDate,
-                            endDate: endDate
-                        },
-                        selectedUgPg: selectedUgPg // <-- CHANGED: Pass selectedUgPg instead of selectedBatch
-                    }
-                });
-            }
-        }
-    };
-
-    const getDisplayDateInfo = (): string => {
-        if (filterMode === 'currentDay') {
-            const latestTimestamp = principalDashboardDjangoData?.late_arrivals.reduce((latest, arrival) => {
-                const arrivalDate = new Date(arrival.timestamp);
-                return latest && latest.getTime() > arrivalDate.getTime() ? latest : arrivalDate;
-            }, new Date(0));
-            return latestTimestamp ? formatDateToISO(latestTimestamp) : 'Today';
-        } else if (filterMode === 'specificDate' && specificDate) {
-            return specificDate;
-        } else if (filterMode === 'weekly' && startDate && endDate) {
-            return `${startDate} to ${endDate}`;
-        } else if (filterMode === 'monthly' && startDate && endDate) {
-            const month = new Date(startDate).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            return `Month of ${month}`;
-        }
-        return 'Today';
-    };
+    // FIX: Display error message if data fetching failed
+    if (errorPrincipalDashboardDjango) {
+        return (
+            <div className="principal-dashboard flex items-center justify-center min-h-screen">
+                <p className="error-message">Error: {errorPrincipalDashboardDjango}</p>
+            </div>
+        );
+    }
 
     const filterLateArrivals = (arrivals: DjangoLateArrival[]) => {
         const startFilterDate = startDate ? new Date(startDate) : null;
@@ -445,12 +467,8 @@ const PrincipalDashboard: React.FC = () => {
             const isWithinDepartment = selectedDepartment === 'All' ||
                 arrival.department.toLowerCase().trim() === selectedDepartment.toLowerCase().trim();
 
-            // CHANGED: UG/PG filter logic instead of Batch filter
             const isWithinUgPg = selectedUgPg === 'All' || arrival.ugpg === selectedUgPg;
             
-            // Debugging console logs - uncomment to re-enable
-            // console.log(`UG/PG Filter Debug: Student: ${arrival.student_name}, Arrival UG/PG: ${arrival.ugpg} (type: ${typeof arrival.ugpg}), Selected UG/PG: ${selectedUgPg} (type: ${typeof selectedUgPg}), Is Within UG/PG: ${isWithinUgPg}, Date Pass: ${isWithinDateRange}, Dept Pass: ${isWithinDepartment}`);
-
             return isWithinDateRange && isWithinDepartment && isWithinUgPg;
         });
     };
@@ -481,6 +499,24 @@ const PrincipalDashboard: React.FC = () => {
         }));
     };
 
+    const getDisplayDateInfo = (): string => {
+        if (filterMode === 'currentDay') {
+            const latestTimestamp = principalDashboardDjangoData?.late_arrivals.reduce((latest, arrival) => {
+                const arrivalDate = new Date(arrival.timestamp);
+                return latest && latest.getTime() > arrivalDate.getTime() ? latest : arrivalDate;
+            }, new Date(0));
+            return latestTimestamp ? formatDateToISO(latestTimestamp) : 'Today';
+        } else if (filterMode === 'specificDate' && specificDate) {
+            return specificDate;
+        } else if (filterMode === 'weekly' && startDate && endDate) {
+            return `${startDate} to ${endDate}`;
+        } else if (filterMode === 'monthly' && startDate && endDate) {
+            const month = new Date(startDate).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            return `Month of ${month}`;
+        }
+        return 'Today';
+    };
+
     const recentLateEntriesForDisplay = () => {
         // Sort the entries to show the most recent first
         const sortedEntries = [...filteredLateArrivals]
@@ -490,39 +526,31 @@ const PrincipalDashboard: React.FC = () => {
         return sortedEntries;
     };
 
-
-    const handleBarClick = (data: any, index: number) => {
-        const department = data.department;
-        const urlSafeDepartment = encodeURIComponent(department.toLowerCase().replace(/\s/g, '-'));
-        navigate(`/department-dashboard/${urlSafeDepartment}`, {
-            state: {
-                allLateArrivalsData: principalDashboardDjangoData?.late_arrivals,
-                filterDateInfo: {
-                    mode: filterMode,
-                    specificDate: specificDate,
-                    startDate: startDate,
-                    endDate: endDate
-                },
-                selectedUgPg: selectedUgPg // <-- CHANGED: Pass selectedUgPg instead of selectedBatch
-            }
-        });
-    };
-
-    if (isLoadingPrincipalDashboardDjangoData) {
-        return (
-            <div className="principal-dashboard flex items-center justify-center min-h-screen">
-                <p className="loading-message">Loading dashboard data...</p>
-            </div>
-        );
-    }
+    // MODIFIED: Defined a palette of professional pastel colors
+    const PASTEL_COLORS = [
+        '#AEC6CF', // Powder Blue
+        '#B3E0C9', // Mint Green
+        '#FDD49E', // Peach
+        '#E6B3B3', // Dusty Rose
+        '#C2B2D8', // Light Lavender
+        '#D5F0F6', // Sky Blue Light
+        '#D0E0E3', // Light Grey Blue
+        '#F6E8DA', // Creamy Beige
+        '#FAD2E1', // Pale Pink
+        '#C7E9B0', // Light Chartreuse
+        '#A7D9D9', // Soft Teal
+        '#FFE0B2', // Pale Orange
+        '#D1C4E9', // Light Purple
+        '#BBDEFB', // Light Blue
+        '#F8BBD0'  // Light Rose
+    ];
 
     return (
         <div className="principal-dashboard">
             <header className="dashboard-header">
                 <h1 className="dashboard-title">Principal Dashboard</h1>
                 <div className="header-actions">
-                    {/* Display user name or role if available, or a generic welcome */}
-                    <span className="text-gray-700 font-medium mr-4">Welcome Sir</span>
+                    <span className="header-welcome-text">Welcome Sir</span> {/* Added new class for styling */}
                     <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 ease-in-out">
                         BACK
                     </button>
@@ -545,7 +573,7 @@ const PrincipalDashboard: React.FC = () => {
                         <input
                             id="specific-date"
                             type="date"
-                            value={specificDate || ''} // Ensure value is never NaN or undefined
+                            value={specificDate || ''}
                             onChange={handleSpecificDateChange}
                         />
                     </div>
@@ -557,7 +585,7 @@ const PrincipalDashboard: React.FC = () => {
                             <input
                                 id="start-date"
                                 type="date"
-                                value={startDate || ''} // Ensure value is never NaN or undefined
+                                value={startDate || ''}
                                 onChange={handleStartDateChange}
                             />
                         </div>
@@ -566,7 +594,7 @@ const PrincipalDashboard: React.FC = () => {
                             <input
                                 id="end-date"
                                 type="date"
-                                value={endDate || ''} // Ensure value is never NaN or undefined
+                                value={endDate || ''}
                                 onChange={handleEndDateChange}
                             />
                         </div>
@@ -580,7 +608,6 @@ const PrincipalDashboard: React.FC = () => {
                         ))}
                     </select>
                 </div>
-                {/* CHANGED: Replaced Batch filter with UG/PG filter */}
                 <div className="filter-box">
                     <label htmlFor="ugpg-filter">UG/PG</label>
                     <select id="ugpg-filter" onChange={handleUgPgChange} value={selectedUgPg}>
@@ -597,7 +624,6 @@ const PrincipalDashboard: React.FC = () => {
                 <p className="loading-message">Loading dashboard data...</p>
             ) : (
                 <div className="dashboard-main-grid">
-                    {/* First section: Total Latecomers card */}
                     <div className="summary-card-container">
                         <section className="summary-card">
                             <h3 className="card-label">Total Latecomers ({getDisplayDateInfo()})</h3>
@@ -605,13 +631,13 @@ const PrincipalDashboard: React.FC = () => {
                         </section>
                     </div>
 
-                    {/* New position for Chart section, now in the top row */}
                     <div className="chart-section-container">
                         <section className="dashboard-chart-section">
                             <h3 className="section-title">Latecomers by Department</h3>
                             <div className="chart-container-bar">
-                                {departmentLatecomersData().length > 0 ? (
-                                    <ResponsiveContainer width="100%" height={300}>
+                                {/* FIX: Always render ResponsiveContainer, conditionally render BarChart or no-data message inside */}
+                                <ResponsiveContainer width="100%" height={250}>
+                                    {departmentLatecomersData().length > 0 ? (
                                         <BarChart
                                             data={departmentLatecomersData()}
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -621,19 +647,28 @@ const PrincipalDashboard: React.FC = () => {
                                             <YAxis />
                                             <Tooltip />
                                             <Legend />
-                                            <Bar dataKey="latecomers" fill="#8884d8" name="Latecomers" onClick={handleBarClick} />
+                                            {/* NEW: Apply pastel colors to bars */}
+                                            <Bar dataKey="latecomers" name="Latecomers" onClick={handleBarClick}>
+                                                {
+                                                    departmentLatecomersData().map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} />
+                                                    ))
+                                                }
+                                            </Bar>
                                         </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <p className="no-data-message">No latecomer data available for departments within the selected date range.</p>
-                                )}
+                                    ) : (
+                                        <div className="recharts-empty-message"> {/* New class for styling */}
+                                            <p className="no-data-message">No latecomer data available for departments within the selected date range.</p>
+                                        </div>
+                                    )}
+                                </ResponsiveContainer>
                             </div>
                         </section>
                     </div>
 
-                    {/* New position for Recent Late Entries section, now on the second row and spanning the full width */}
                     <div className="recent-entries-section-container">
-                        <RecentLateEntries entries={recentLateEntriesForDisplay()} filterMode={filterMode} />
+                        {/* MODIFIED: Pass lateStudentsCount as totalLatecomers prop */}
+                        <RecentLateEntries entries={recentLateEntriesForDisplay()} filterMode={filterMode} totalLatecomers={lateStudentsCount} />
                     </div>
                 </div>
             )}
