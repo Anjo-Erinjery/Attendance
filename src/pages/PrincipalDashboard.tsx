@@ -626,7 +626,7 @@ const PrincipalDashboard: React.FC = () => {
                 <div className="dashboard-main-grid">
                     <div className="summary-card-container">
                         <section className="summary-card">
-                            <h3 className="card-label">Total Latecomers ({getDisplayDateInfo()})</h3>
+                            <h3 className="card-label">Total Latecome ({getDisplayDateInfo()})</h3>
                             <p className="card-value">{lateStudentsCount}</p>
                         </section>
                     </div>
