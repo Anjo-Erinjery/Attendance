@@ -1,7 +1,6 @@
 /* This file combines and modifies styles from PrincipalDashboard.css and DepartmentLatecomers.css */
 
 /* General Dashboard Layout and Typography */
-
 .hod-dashboard {
   font-family: 'Inter', sans-serif;
   color: #333;
@@ -10,7 +9,7 @@
   min-height: 100vh;
   width: 100%;
 }
-.dashboard-header {
+.hod-dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -20,23 +19,23 @@
   box-shadow: 0 6px 15px rgba(0,0,0,0.08);
   margin-bottom: 30px;
 }
-.dashboard-title {
+.hod-dashboard-title {
   font-size: 1.8rem;
   font-weight: 700;
   color: #2c3e50;
 }
-.header-actions {
+.hod-header-actions {
   display: flex;
   align-items: center;
   gap: 15px;
 }
-.loading-message {
+.hod-loading-message {
   text-align: center;
   font-size: 1.2rem;
   color: #666;
   padding: 50px;
 }
-.no-data-message {
+.hod-no-data-message {
   text-align: center;
   color: #999;
   font-style: italic;
@@ -44,7 +43,7 @@
 }
 
 /* Filter Section */
-.dashboard-filters {
+.hod-dashboard-filters {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
@@ -55,19 +54,19 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
   margin-bottom: 30px;
 }
-.filter-box {
+.hod-filter-box {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 180px;
 }
-.filter-box label {
+.hod-filter-box label {
   font-size: 0.9rem;
   color: #555;
   margin-bottom: 8px;
   font-weight: 500;
 }
-.filter-box select, .filter-box input {
+.hod-filter-box select, .hod-filter-box input {
   padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -76,20 +75,20 @@
   background-color: #f8f9fa;
   transition: all 0.2s ease-in-out;
 }
-.filter-box select:focus, .filter-box input:focus {
+.hod-filter-box select:focus, .hod-filter-box input:focus {
   outline: none;
   border-color: #000;
   box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
 }
 
 /* Summary Cards */
-.dashboard-summary-grid {
+.hod-dashboard-summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
   margin-bottom: 30px;
 }
-.summary-card {
+.hod-summary-card {
   background-color: #fff;
   padding: 30px;
   border-radius: 12px;
@@ -98,41 +97,41 @@
   border: 1px solid #f0f2f5;
   transition: transform 0.2s ease-in-out;
 }
-.summary-card:hover {
+.hod-summary-card:hover {
   transform: translateY(-5px);
 }
-.card-label {
+.hod-card-label {
   font-size: 1.1rem;
   font-weight: 600;
   color: #6c757d;
   margin-bottom: 12px;
 }
-.card-value {
+.hod-card-value {
   font-size: 3rem;
   font-weight: 700;
   color: #2c3e50;
 }
 
 /* New Section for Recent Latecomers & Chart */
-.recent-latecomers-section, .dashboard-chart-section {
+.hod-recent-latecomers-section, .hod-dashboard-chart-section {
   background-color: #fff;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.08);
   margin-bottom: 30px;
 }
-.section-title {
+.hod-section-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 20px;
 }
-.recent-entries-content {
+.hod-recent-entries-content {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
-.recent-entry-item {
+.hod-recent-entry-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -145,67 +144,67 @@
   flex: 1;
   min-width: 250px;
 }
-.recent-entry-item:hover {
+.hod-recent-entry-item:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.entry-details {
+.hod-entry-details {
   display: flex;
   flex-direction: column;
   margin-right: 15px;
 }
-.student-name {
+.hod-student-name {
   font-weight: 600;
   color: #34495e;
 }
-.entry-time {
+.hod-entry-time {
   font-size: 0.9rem;
   color: #7f8c8d;
 }
-.entry-batch {
+.hod-entry-batch {
   font-size: 0.9rem;
   font-weight: 500;
   color: #2980b9;
 }
-.chart-container-bar {
+.hod-chart-container-bar {
   width: 100%;
   height: 300px;
 }
 
 /* Table and Data Display - adapted from DepartmentLatecomers.css */
-.students-table-container {
+.hod-students-table-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
     overflow-x: auto;
 }
-table {
+.hod-students-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 1rem;
     color: #333;
 }
-thead {
+.hod-students-table thead {
     background-color: #f9f9f9;
 }
-th, td {
+.hod-students-table th, .hod-students-table td {
     padding: 15px;
     text-align: left;
     border-bottom: 1px solid #eee;
 }
-th {
+.hod-students-table th {
     font-weight: 600;
     color: #555;
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.5px;
 }
-tr:hover {
+.hod-students-table tr:hover {
     background-color: #fafafa;
 }
 
-.logout-button {
+.hod-logout-button {
   background-color: #c0392b;
   color: #fff;
   border: none;
@@ -216,11 +215,11 @@ tr:hover {
   transition: background-color 0.2s;
   font-weight: 500;
 }
-.logout-button:hover {
+.hod-logout-button:hover {
   background-color: #a62a1c;
 }
 
-.error-message {
+.hod-error-message {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
@@ -229,13 +228,13 @@ tr:hover {
   margin-top: 20px;
   text-align: center;
 }
-.quick-filter-buttons {
+.hod-quick-filter-buttons {
     display: flex;
     gap: 10px;
     margin-top: 5px;
 }
 
-.quick-filter-btn {
+.hod-quick-filter-btn {
     padding: 5px 10px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
@@ -244,17 +243,17 @@ tr:hover {
     font-size: 0.9rem;
 }
 
-.quick-filter-btn:hover {
+.hod-quick-filter-btn:hover {
     background-color: #e0e0e0;
 }
-.section-header {
+.hod-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.download-pdf-btn {
+.hod-download-pdf-btn {
     background-color: #85e26b;
     color: white;
     border: none;
@@ -265,17 +264,17 @@ tr:hover {
     transition: background-color 0.2s;
 }
 
-.download-pdf-btn:hover {
+.hod-download-pdf-btn:hover {
     background-color: #6bc053;
 }
 
-.quick-filter-buttons {
+.hod-quick-filter-buttons {
     display: flex;
     gap: 10px;
     margin-top: 5px;
 }
 
-.quick-filter-btn {
+.hod-quick-filter-btn {
     padding: 5px 10px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
@@ -284,14 +283,15 @@ tr:hover {
     font-size: 0.9rem;
 }
 
-.quick-filter-btn:hover {
+.hod-quick-filter-btn:hover {
     background-color: #e0e0e0;
-}.download-buttons {
+}
+.hod-download-buttons {
     display: flex;
     gap: 10px;
 }
 
-.download-excel-btn {
+.hod-download-excel-btn {
     background-color: #21a366;
     color: white;
     border: none;
@@ -302,6 +302,6 @@ tr:hover {
     transition: background-color 0.2s;
 }
 
-.download-excel-btn:hover {
+.hod-download-excel-btn:hover {
     background-color: #1a8a57;
 }

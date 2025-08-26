@@ -82,17 +82,17 @@ const StudentTable: React.FC<StudentTableProps> = ({
         .sort(([, a], [, b]) => b - a);
 
     return (
-        <div className="students-table-container">
+        <div className="hod-students-table-container">
             {isDateRangeMode && sortedStudents.length === 0 && students.length === 0 && (
-                <p className="no-data-message">No latecomers found for this date range.</p>
+                <p className="hod-no-data-message">No latecomers found for this date range.</p>
             )}
             {!isDateRangeMode && students.length === 0 && (
-                <p className="no-data-message">No latecomers found for the selected filter.</p>
+                <p className="hod-no-data-message">No latecomers found for the selected filter.</p>
             )}
 
             {(isDateRangeMode && sortedStudents.length > 0) || (!isDateRangeMode && students.length > 0) ? (
                 <div className="overflow-x-auto">
-                    <table ref={tableRef}>
+                    <table ref={tableRef} className="hod-students-table">
                         <thead>
                             <tr>
                                 <th>Student Name</th>
@@ -488,7 +488,7 @@ const LatecomersPage: React.FC = () => {
     if (loading) {
         return (
             <div className="hod-dashboard flex items-center justify-center min-h-screen">
-                <p className="loading-message">Loading HOD dashboard data...</p>
+                <p className="hod-loading-message">Loading HOD dashboard data...</p>
             </div>
         );
     }
@@ -528,16 +528,16 @@ const LatecomersPage: React.FC = () => {
 
     return (
         <div className="hod-dashboard">
-            <header className="dashboard-header">
-                <h1 className="dashboard-title">HOD Dashboard: {department}</h1>
-                <div className="header-actions">
+            <header className="hod-dashboard-header">
+                <h1 className="hod-dashboard-title">HOD Dashboard: {department}</h1>
+                <div className="hod-header-actions">
                     <span className="text-gray-700 font-medium mr-4">Welcome , {user?.department} HOD</span>
-                    <button className="logout-button" onClick={logout}>Logout</button>
+                    <button className="hod-logout-button" onClick={logout}>Logout</button>
                 </div>
             </header>
             
-            <section className="dashboard-filters">
-                <div className="filter-box">
+            <section className="hod-dashboard-filters">
+                <div className="hod-filter-box">
                     <label htmlFor="date-filter">Filter By:</label>
                     <select id="date-filter" value={filterMode} onChange={handleFilterModeChange}>
                         <option value="today">Today</option>
@@ -548,7 +548,7 @@ const LatecomersPage: React.FC = () => {
                     </select>
                 </div>
                 {filterMode === 'specificDate' && (
-                    <div className="filter-box">
+                    <div className="hod-filter-box">
                         <label htmlFor="date-input">Select Date:</label>
                         <input
                             id="date-input"
@@ -560,7 +560,7 @@ const LatecomersPage: React.FC = () => {
                 )}
                 {showDateRange && (
                     <>
-                        <div className="filter-box">
+                        <div className="hod-filter-box">
                             <label htmlFor="start-date-input">Start Date:</label>
                             <input
                                 id="start-date-input"
@@ -569,7 +569,7 @@ const LatecomersPage: React.FC = () => {
                                 onChange={handleStartDateChange}
                             />
                         </div>
-                        <div className="filter-box">
+                        <div className="hod-filter-box">
                             <label htmlFor="end-date-input">End Date:</label>
                             <input
                                 id="end-date-input"
@@ -580,7 +580,7 @@ const LatecomersPage: React.FC = () => {
                         </div>
                     </>
                 )}
-                <div className="filter-box">
+                <div className="hod-filter-box">
                     <label htmlFor="batch-filter">Filter By Batch:</label>
                     <select id="batch-filter" value={selectedBatch} onChange={handleBatchChange}>
                         <option value="All">All</option>
@@ -593,18 +593,18 @@ const LatecomersPage: React.FC = () => {
                 </div>
             </section>
 
-            <section className="dashboard-summary-grid">
-                <div className="summary-card">
-                    <p className="card-label">Total Latecomers ({cardTitle})</p>
-                    <h2 className="card-value">{totalLatecomers}</h2>
+            <section className="hod-dashboard-summary-grid">
+                <div className="hod-summary-card">
+                    <p className="hod-card-label">Total Latecomers ({cardTitle})</p>
+                    <h2 className="hod-card-value">{totalLatecomers}</h2>
                 </div>
             </section>
             
-            <section className="dashboard-chart-section">
-                <h3 className="section-title">
+            <section className="hod-dashboard-chart-section">
+                <h3 className="hod-section-title">
                     {isDateRangeMode ? "Top 5 Latecomers (Selected Range)" : "Latecomers (Last 7 Days)"}
                 </h3>
-                <div className="chart-container-bar">
+                <div className="hod-chart-container-bar">
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart
@@ -619,19 +619,19 @@ const LatecomersPage: React.FC = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <p className="no-data-message">No latecomer data available for the selected period.</p>
+                        <p className="hod-no-data-message">No latecomer data available for the selected period.</p>
                     )}
                 </div>
             </section>
 
-            <section className="recent-latecomers-section">
-                <div className="section-header">
-                    <h3 className="section-title">Latecomers Details ({cardTitle})</h3>
-                    <div className="download-buttons">
-                        <button className="download-pdf-btn" onClick={exportToPDF}>
+            <section className="hod-recent-latecomers-section">
+                <div className="hod-section-header">
+                    <h3 className="hod-section-title">Latecomers Details ({cardTitle})</h3>
+                    <div className="hod-download-buttons">
+                        <button className="hod-download-pdf-btn" onClick={exportToPDF}>
                             Download PDF
                         </button>
-                        <button className="download-excel-btn" onClick={exportToExcel}>
+                        <button className="hod-download-excel-btn" onClick={exportToExcel}>
                             Download Excel
                         </button>
                     </div>
@@ -646,7 +646,7 @@ const LatecomersPage: React.FC = () => {
             </section>
 
             {error && (
-                <div className="error-message">
+                <div className="hod-error-message">
                     <p>{error}</p>
                 </div>
             )}
