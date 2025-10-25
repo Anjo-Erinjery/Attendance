@@ -525,6 +525,23 @@ const LatecomersPage: React.FC = () => {
     const totalLatecomers = filteredStudents.length;
     const isDateRangeMode = filterMode === 'weekly' || filterMode === 'monthly' || filterMode === 'dateRange';
     const showAggregateColumn = filterMode === 'all';
+    const PASTEL_COLORS = [
+        '#AEC6CF', // Powder Blue
+        '#B3E0C9', // Mint Green
+        '#FDD49E', // Peach
+        '#E6B3B3', // Dusty Rose
+        '#C2B2D8', // Light Lavender
+        '#D5F0F6', // Sky Blue Light
+        '#D0E0E3', // Light Grey Blue
+        '#F6E8DA', // Creamy Beige
+        '#FAD2E1', // Pale Pink
+        '#C7E9B0', // Light Chartreuse
+        '#A7D9D9', // Soft Teal
+        '#FFE0B2', // Pale Orange
+        '#D1C4E9', // Light Purple
+        '#BBDEFB', // Light Blue
+        '#F8BBD0'  // Light Rose
+    ];
 
     return (
         <div className="hod-dashboard">
@@ -615,7 +632,7 @@ const LatecomersPage: React.FC = () => {
                                 <XAxis dataKey={isDateRangeMode ? "name" : "date"} />
                                 <YAxis />
                                 <Tooltip />
-                                <Bar dataKey="latecomers" fill="#85e26bff" name="Latecomers" />
+                                <Bar dataKey="latecomers" fill={PASTEL_COLORS[0]} name="Latecomers" />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (

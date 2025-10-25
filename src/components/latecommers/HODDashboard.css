@@ -7,7 +7,8 @@
   padding: 30px;
   background-color: #f0f2f5;
   min-height: 100vh;
-  width: 100%;
+  width: 99%;
+  
 }
 .hod-dashboard-header {
   display: flex;
@@ -18,6 +19,8 @@
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.08);
   margin-bottom: 30px;
+  margin-top: -1.5%;
+  height: 30px;
 }
 .hod-dashboard-title {
   font-size: 1.8rem;
@@ -48,23 +51,27 @@
   gap: 20px;
   flex-wrap: wrap;
   align-items: center;
-  background-color: #fff;
+  background-color: #d0f4bd;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
   margin-bottom: 30px;
+  margin-top: -1.5%;
+  height: 70px;
 }
 .hod-filter-box {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 180px;
+  
 }
 .hod-filter-box label {
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 1.4rem;
+  color: #2a7a14;
   margin-bottom: 8px;
   font-weight: 500;
+  font-style: bold;
 }
 .hod-filter-box select, .hod-filter-box input {
   padding: 12px;
@@ -87,6 +94,11 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
   margin-bottom: 30px;
+  margin-top: -1.5%;
+  width: 20%;
+  
+  height: 450px;
+  
 }
 .hod-summary-card {
   background-color: #fff;
@@ -96,29 +108,41 @@
   text-align: center;
   border: 1px solid #f0f2f5;
   transition: transform 0.2s ease-in-out;
+  background-color: #21a366;
 }
 .hod-summary-card:hover {
   transform: translateY(-5px);
 }
 .hod-card-label {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 600;
-  color: #6c757d;
-  margin-bottom: 12px;
+  color: #fff;
+  margin-bottom: 120px;
 }
 .hod-card-value {
   font-size: 3rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #fff;
 }
 
 /* New Section for Recent Latecomers & Chart */
-.hod-recent-latecomers-section, .hod-dashboard-chart-section {
+.hod-recent-latecomers-section{
+
+    background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+ .hod-dashboard-chart-section {
   background-color: #fff;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.08);
   margin-bottom: 30px;
+  width: 72%;
+  margin-left: 22%;
+  margin-top: -32.5%;
 }
 .hod-section-title {
   font-size: 1.5rem;
@@ -178,6 +202,10 @@
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
     overflow-x: auto;
+    margin-top: -1%;
+}
+.hod-section-header{
+  margin-top: -1%;
 }
 .hod-students-table {
     width: 100%;
