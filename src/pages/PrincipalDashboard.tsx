@@ -14,15 +14,6 @@ import {
 import '../styles/principaldashboard/PrincipalDashboard.css';
 import { useAuthStore } from '../store/authStore';
 
-// IMPORTANT: Include jsPDF and html2canvas CDN scripts
-// These scripts are necessary for PDF generation from HTML content.
-// Ensure these are loaded in your HTML file or globally accessible.
-// For example, you might add them in your public/index.html <head> or similar:
-/*
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-*/
-
 // Declare global jsPDF and html2canvas if loaded via CDN
 declare const html2canvas: any;
 declare const jspdf: any;
@@ -38,7 +29,7 @@ interface DjangoLateArrival {
     student_name: string;
     department: string;
     batch: string; // Batch is a string like "U5DS2024"
-    ugpg: string; // <-- ADDED: UG/PG status
+    ugpg: string; // UG/PG status
     timestamp: string;
 }
 
@@ -48,9 +39,17 @@ interface PrincipalDashboardDjangoData {
     late_arrivals: DjangoLateArrival[];
 }
 
+// Utility function to shuffle an array (Fisher-Yates algorithm)
+const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
+
 // Separate component for RecentLateEntries for better code organization
-// MODIFIED: Added totalLatecomers prop
-const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: string, totalLatecomers: number }> = ({ entries, filterMode, totalLatecomers }) => {
+const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: string, totalLatecomers: number }> = ({ entries, filterMode }) => {
     const formatTimestamp = (isoString: string) => {
         if (!isoString) return 'N/A';
         const date = new Date(isoString);
@@ -58,7 +57,8 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
     };
 
     const displayTableRows = () => {
-        if (filterMode === 'weekly' || filterMode === 'monthly') {
+        // Mode: 'weekly', 'monthly', or 'specificDate' (where count > 1 is possible)
+        if (filterMode !== 'currentDay') {
             const studentPeriodCounts = new Map<string, { count: number; batch: string; ugpg: string; department: string }>();
             entries.forEach(entry => {
                 const key = entry.student_name;
@@ -77,18 +77,21 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
                         <td data-label="Department">{data.department}</td>
                         <td data-label="Batch">{data.batch}</td>
                         <td data-label="UG/PG">{data.ugpg}</td>
+                        {/* LATE COUNT is displayed here */}
                         <td data-label="Late Count">{data.count}</td>
                     </tr>
                 ));
         } else {
+            // Mode: 'currentDay'
             return entries.map((entry, index) => (
                 <tr key={index}>
                     <td data-label="Student Name">{entry.student_name}</td>
                     <td data-label="Department">{entry.department}</td>
                     <td data-label="Batch">{entry.batch}</td>
                     <td data-label="UG/PG">{entry.ugpg}</td>
+                    {/* LATE ARRIVAL TIME is displayed here */}
                     <td data-label="Late Arrival Time">{formatTimestamp(entry.timestamp)}</td>
-                    <td data-label="Late Count">1</td>
+                    {/* LATE COUNT COLUMN IS OMITTED HERE */}
                 </tr>
             ));
         }
@@ -149,7 +152,10 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
         }
     };
 
-    const totalColSpan = (filterMode !== 'weekly' && filterMode !== 'monthly') ? 5 : 4; 
+    // Determine which columns to show in the header
+    const showLateArrivalTime = filterMode === 'currentDay';
+    const showLateCount = filterMode !== 'currentDay';
+
 
     return (
         <section className="recent-latecomers-section">
@@ -171,17 +177,13 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
                                 <th>DEPARTMENT</th>
                                 <th>BATCH</th>
                                 <th>UG/PG</th>
-                                {(filterMode !== 'weekly' && filterMode !== 'monthly') ? <th>LATE ARRIVAL TIME</th> : null} 
-                                <th>LATE COUNT</th>
+                                {/* Conditionally display LATE ARRIVAL TIME */}
+                                {showLateArrivalTime && <th>LATE ARRIVAL TIME</th>}
+                                {/* Conditionally display LATE COUNT (only for weekly/monthly/specific date) */}
+                                {showLateCount && <th>LATE COUNT</th>}
                             </tr>
                         </thead>
                         <tbody>{displayTableRows()}</tbody>
-                        {/* <tfoot>
-                            <tr>
-                                <td colSpan={totalColSpan} style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Latecomers:</td>
-                                <td style={{ fontWeight: 'bold' }}>{totalLatecomers}</td>
-                            </tr>
-                        </tfoot> */}
                     </table>
                 ) : (
                     <p className="no-data-message">No recent late entries available for this period.</p>
@@ -190,6 +192,38 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
         </section>
     );
 };
+
+// ***************************************************************
+// ** DYNAMIC ABBREVIATION FUNCTION (NO HARDCODING) **
+// ***************************************************************
+const shortenDepartmentName = (name: string): string => {
+    const trimmedName = name.trim();
+
+    // Split by any space or hyphen to correctly handle multi-word names
+    const words = trimmedName.split(/[\s-]+/).filter(w => w.length > 0);
+
+    // 1. DYNAMIC INITIALS: Use initials for ALL multi-word names (e.g., "Data Science" -> "DS")
+    if (words.length > 1) {
+        const initials = words.map(w => w.charAt(0).toUpperCase()).join('');
+        // Limit initials length to prevent overlap
+        return initials.length <= 5 ? initials : initials.substring(0, 5);
+    }
+
+    // 2. STRICT TRUNCATION: If it's a single word and over 5 characters, truncate to first 3 + '.'
+    const MAX_LENGTH_BEFORE_TRUNCATE = 5;
+    if (trimmedName.length > MAX_LENGTH_BEFORE_TRUNCATE) {
+        // Truncate to the first 3 characters and append a period.
+        return trimmedName.substring(0, 3) + '.';
+    }
+
+    // Default: return the original name (it's short enough, e.g., "Math" or "Arts")
+    return trimmedName;
+};
+
+// ***************************************************************
+// ** END OF DYNAMIC FUNCTION **
+// ***************************************************************
+
 
 const PrincipalDashboard: React.FC = () => {
     const navigate = useNavigate();
@@ -379,6 +413,7 @@ const PrincipalDashboard: React.FC = () => {
                 console.log("Successfully fetched Django data:", data);
                 setPrincipalDashboardDjangoData(data);
 
+                // Dynamically populate departments from API data
                 const uniqueDepartments = Array.from(new Set(data.late_arrivals.map(arrival => arrival.department)));
                 setDepartments(['All', ...uniqueDepartments]);
 
@@ -444,7 +479,7 @@ const PrincipalDashboard: React.FC = () => {
                 arrival.department.toLowerCase().trim() === selectedDepartment.toLowerCase().trim();
 
             const isWithinUgPg = selectedUgPg === 'All' || arrival.ugpg === selectedUgPg;
-            
+
             return isWithinDateRange && isWithinDepartment && isWithinUgPg;
         });
     };
@@ -455,9 +490,15 @@ const PrincipalDashboard: React.FC = () => {
 
     const lateStudentsCount = filteredLateArrivals.length;
 
+    // ***************************************************************
+    // ** UPDATED FUNCTION: Sorts by count (desc) and ensures a Top 10 list (filling with random empty deps) **
+    // ***************************************************************
     const departmentLatecomersData = () => {
+        const allDepartmentNames = departments.filter(d => d !== 'All');
         const departmentCounts: { [key: string]: number } = {};
-        departments.filter(d => d !== 'All').forEach(dept => {
+
+        // 1. COLLECT: Initialize counts for all departments and count latecomers
+        allDepartmentNames.forEach(dept => {
             departmentCounts[dept] = 0;
         });
 
@@ -468,11 +509,37 @@ const PrincipalDashboard: React.FC = () => {
             }
         });
 
-        return Object.keys(departmentCounts).map(dept => ({
+        // Convert the map to an array of objects
+        let data = Object.keys(departmentCounts).map(dept => ({
             department: dept,
             latecomers: departmentCounts[dept],
         }));
+
+        // Separate departments into non-empty and empty lists
+        let nonZeroData = data.filter(d => d.latecomers > 0);
+        let zeroData = data.filter(d => d.latecomers === 0);
+
+        // 2. SORT NON-ZERO: Sort by latecomers count in descending order
+        nonZeroData.sort((a, b) => b.latecomers - a.latecomers);
+
+        const MAX_DEPARTMENTS_TO_DISPLAY = 10;
+
+        if (nonZeroData.length >= MAX_DEPARTMENTS_TO_DISPLAY) {
+            // If there are 10 or more departments with latecomers, just show the top 10
+            return nonZeroData.slice(0, MAX_DEPARTMENTS_TO_DISPLAY);
+        }
+
+        // 3. SHUFFLE EMPTY: If we need to fill the remaining spots, shuffle the zero-count departments
+        const requiredEmptySpots = MAX_DEPARTMENTS_TO_DISPLAY - nonZeroData.length;
+        const shuffledZeroData = shuffleArray(zeroData);
+
+        // 4. COMBINE & LIMIT: Take the necessary number of shuffled empty departments
+        const fillerData = shuffledZeroData.slice(0, requiredEmptySpots);
+
+        // Combine the top departments and the random filler departments
+        return [...nonZeroData, ...fillerData];
     };
+    // ***************************************************************
 
     const getDisplayDateInfo = (): string => {
         if (filterMode === 'currentDay') {
@@ -498,6 +565,7 @@ const PrincipalDashboard: React.FC = () => {
 
         return sortedEntries;
     };
+
 
     const PASTEL_COLORS = [
         '#AEC6CF', // Powder Blue
@@ -596,6 +664,7 @@ const PrincipalDashboard: React.FC = () => {
                 <p className="loading-message">Loading dashboard data...</p>
             ) : (
                 <div className="dashboard-main-grid">
+                    {/* TOTAL LATECOMERS SUMMARY CARD - KEPT */}
                     <div className="summary-card-container">
                         <section className="summary-card">
                             <h3 className="card-label">Total Latecomers <br/>({getDisplayDateInfo()})</h3>
@@ -605,7 +674,7 @@ const PrincipalDashboard: React.FC = () => {
 
                     <div className="chart-section-container">
                         <section className="dashboard-chart-section">
-                            <h3 className="section-title">Latecomers by Department</h3>
+                            <h3 className="section-title">Department Latecomers</h3>
                             <div className="chart-container-bar">
                                 <ResponsiveContainer width="100%" height={250}>
                                     {departmentLatecomersData().length > 0 ? (
@@ -614,7 +683,13 @@ const PrincipalDashboard: React.FC = () => {
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="department" />
+                                            <XAxis
+                                                dataKey="department"
+                                                tickFormatter={shortenDepartmentName}
+                                                height={50}
+                                                // Ensures ALL ticks are displayed
+                                                interval={0}
+                                            />
                                             <YAxis />
                                             <Tooltip />
                                             <Legend />
@@ -628,7 +703,7 @@ const PrincipalDashboard: React.FC = () => {
                                         </BarChart>
                                     ) : (
                                         <div className="recharts-empty-message">
-                                            <p className="no-data-message">No latecomer data available for departments within the selected date range.</p>
+                                            <p className="no-data-message">No department data available within the selected date range.</p>
                                         </div>
                                     )}
                                 </ResponsiveContainer>
