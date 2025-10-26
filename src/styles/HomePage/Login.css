@@ -1,3 +1,10 @@
+/* Reset box model globally */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* Base Layout */
 .main-login {
   display: flex;
@@ -10,6 +17,7 @@
   background-position: center;
   background-repeat: no-repeat;
   padding: 20px;
+  overflow: hidden;
 }
 
 /* Login Box */
@@ -22,7 +30,8 @@
   border-radius: 12px;
   text-align: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); /* Safari support */
 }
 
 /* Heading */
@@ -35,13 +44,16 @@
 
 /* Input Fields */
 .login-container input {
+  display: block;
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 16px;
+  font-family: inherit;
   transition: all 0.3s ease;
+  background-color: #fff;
 }
 
 .login-container input:focus {
@@ -74,6 +86,11 @@ body, input, button {
   font-size: clamp(14px, 1.2vw, 16px);
 }
 
+/* Fix autofill yellow background in Chrome */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+}
+
 /* ======= RESPONSIVE BREAKPOINTS ======= */
 
 /* Small phones (portrait) */
@@ -85,6 +102,7 @@ body, input, button {
   .login-container {
     padding: 20px;
     border-radius: 10px;
+    max-width: 95%;
   }
 
   .login-container h2 {
@@ -97,7 +115,7 @@ body, input, button {
   }
 }
 
-/* Tablets (landscape & portrait) */
+/* Tablets (portrait & landscape) */
 @media (max-width: 768px) {
   .main-login {
     padding: 30px;
@@ -119,7 +137,7 @@ body, input, button {
 /* Large screens */
 @media (min-width: 1440px) {
   .login-container {
-    max-width: 450px;
+    max-width: 460px;
   }
   .login-container h2 {
     font-size: 28px;
