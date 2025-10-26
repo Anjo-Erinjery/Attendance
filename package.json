@@ -10,7 +10,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "dev": "vite",
-    "build": "vite build",
+    "build": "react-scripts build",
     "deploy": "gh-pages -d dist",
     "preview": "vite preview"
   },
