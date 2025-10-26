@@ -176,12 +176,12 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
                             </tr>
                         </thead>
                         <tbody>{displayTableRows()}</tbody>
-                        <tfoot>
+                        {/* <tfoot>
                             <tr>
                                 <td colSpan={totalColSpan} style={{ textAlign: 'right', fontWeight: 'bold' }}>Total Latecomers:</td>
                                 <td style={{ fontWeight: 'bold' }}>{totalLatecomers}</td>
                             </tr>
-                        </tfoot>
+                        </tfoot> */}
                     </table>
                 ) : (
                     <p className="no-data-message">No recent late entries available for this period.</p>
