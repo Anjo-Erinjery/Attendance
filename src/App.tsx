@@ -27,11 +27,7 @@ const App: React.FC = () => {
         {/* Home page route */}
         <Route path="/" element={
           <>
-          
-            <Header />
-            <Hero />
-            <News />
-            <Footer />
+          <Login />
           </>
         } />
         
