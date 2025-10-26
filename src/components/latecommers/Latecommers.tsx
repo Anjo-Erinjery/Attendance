@@ -112,7 +112,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                             {isDateRangeMode ? (
                                 sortedStudents.map(([studentName, count], index) => (
                                     <tr key={index}>
-                                        <td data-label="Student Name">{studentName}</td>
+                                        <td data-label="Name">{studentName}</td>
                                         <td data-label="Total Late Count">{count}</td>
                                         {showAggregateColumn && (
                                             <td data-label="Total Late Count (All Time)">
