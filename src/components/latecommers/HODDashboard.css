@@ -1,279 +1,194 @@
-/* This file combines and modifies styles from PrincipalDashboard.css and DepartmentLatecomers.css */
+/* HODDashboard.css - Revised for Grid Layout without separate wrapper, matching image visual */
 
-/* General Dashboard Layout and Typography */
+/* === General Dashboard Layout & Typography === */
 .hod-dashboard {
-  font-family: 'Inter', sans-serif;
-  color: #333;
-  padding: 30px;
-  background-color: #f0f2f5;
-  min-height: 100vh;
-  width: 99%;
-  
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    padding: 30px;
+    background-color: #f0f2f5;
+    min-height: 100vh;
 }
+
 .hod-dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 25px;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-  margin-bottom: 30px;
-  margin-top: -1.5%;
-  height: 30px;
-}
-.hod-dashboard-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2c3e50;
-}
-.hod-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-.hod-loading-message {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #666;
-  padding: 50px;
-}
-.hod-no-data-message {
-  text-align: center;
-  color: #999;
-  font-style: italic;
-  padding: 20px;
-}
-
-/* Filter Section */
-.hod-dashboard-filters {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: center;
-  background-color: #d0f4bd;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-  margin-bottom: 30px;
-  margin-top: -1.5%;
-  height: 70px;
-}
-.hod-filter-box {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 180px;
-  
-}
-.hod-filter-box label {
-  font-size: 1.4rem;
-  color: #2a7a14;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-style: bold;
-}
-.hod-filter-box select, .hod-filter-box input {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #333;
-  background-color: #f8f9fa;
-  transition: all 0.2s ease-in-out;
-}
-.hod-filter-box select:focus, .hod-filter-box input:focus {
-  outline: none;
-  border-color: #000;
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
-}
-
-/* Summary Cards */
-.hod-dashboard-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
-  margin-bottom: 30px;
-  margin-top: -1.5%;
-  width: 20%;
-  
-  height: 450px;
-  
-}
-.hod-summary-card {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-  text-align: center;
-  border: 1px solid #f0f2f5;
-  transition: transform 0.2s ease-in-out;
-  background-color: #21a366;
-}
-.hod-summary-card:hover {
-  transform: translateY(-5px);
-}
-.hod-card-label {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 120px;
-}
-.hod-card-value {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-/* New Section for Recent Latecomers & Chart */
-.hod-recent-latecomers-section{
-
-    background-color: #ffffff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-  margin-bottom: 30px;
-}
- .hod-dashboard-chart-section {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-  margin-bottom: 30px;
-  width: 72%;
-  margin-left: 22%;
-  margin-top: -32.5%;
-}
-.hod-section-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 20px;
-}
-.hod-recent-entries-content {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-.hod-recent-entry-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease-in-out;
-  flex: 1;
-  min-width: 250px;
-}
-.hod-recent-entry-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-.hod-entry-details {
-  display: flex;
-  flex-direction: column;
-  margin-right: 15px;
-}
-.hod-student-name {
-  font-weight: 600;
-  color: #34495e;
-}
-.hod-entry-time {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-}
-.hod-entry-batch {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #2980b9;
-}
-.hod-chart-container-bar {
-  width: 100%;
-  height: 300px;
-}
-
-/* Table and Data Display - adapted from DepartmentLatecomers.css */
-.hod-students-table-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px;
     background-color: #fff;
-    padding: 20px;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-    overflow-x: auto;
-    margin-top: -1%;
+    margin-bottom: 30px;
+    /* Kept for consistency */
+    /* Removed margin-top: -1.5%; for clean start */
+    height: auto;
 }
-.hod-section-header{
-  margin-top: -1%;
+
+.hod-dashboard-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
 }
-.hod-students-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 1rem;
-    color: #333;
-}
-.hod-students-table thead {
-    background-color: #f9f9f9;
-}
-.hod-students-table th, .hod-students-table td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-.hod-students-table th {
-    font-weight: 600;
-    color: #555;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-.hod-students-table tr:hover {
-    background-color: #fafafa;
+
+.hod-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .hod-logout-button {
-  background-color: #c0392b;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: 500;
-}
-.hod-logout-button:hover {
-  background-color: #a62a1c;
-}
-
-.hod-error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  padding: 15px;
-  border-radius: 8px;
-  margin-top: 20px;
-  text-align: center;
-}
-.hod-quick-filter-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 5px;
-}
-
-.hod-quick-filter-btn {
-    padding: 5px 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    background-color: #c0392b;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
     cursor: pointer;
-    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    font-weight: 500;
 }
 
-.hod-quick-filter-btn:hover {
-    background-color: #e0e0e0;
+.hod-logout-button:hover {
+    background-color: #a62a1c;
 }
+
+/* === Filter Section === */
+.hod-dashboard-filters {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    background-color: #d0f4bd;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    margin-bottom: 40px;
+    /* Kept for consistency */
+    margin-top: -1.5%; 
+    height: 100px;
+}
+
+.hod-filter-box {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 180px;
+}
+
+.hod-filter-box label {
+    font-size: 1.4rem; /* Restored larger size from original */
+    color: #2a7a14;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.hod-filter-box select,
+.hod-filter-box input {
+    padding: 12px; /* Restored larger padding from original */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease-in-out;
+}
+
+.hod-filter-box select:focus,
+.hod-filter-box input:focus {
+    outline: none;
+    border-color: #2c3e50;
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+/* * FIX SECTION: Use float/width to mimic the side-by-side layout 
+* This is necessary because the original HTML is non-semantic for flex/grid.
+*/
+
+/* Summary Card Grid - Left Column */
+.hod-dashboard-summary-grid {
+    /* Restore float-like behavior */
+    float: left;
+    width: 25%; /* Fixed width to match visual gap */
+    
+    display: grid;
+    grid-template-columns: 1fr; 
+    gap: 25px;
+    margin-bottom: 30px;
+    margin-top: -1%;
+    
+    height: auto; /* Must be auto or it prevents alignment */
+}
+
+.hod-summary-card {
+    background-color: #21a366;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    border: 1px solid #f0f2f5;
+    transition: transform 0.2s ease-in-out;
+    /* Ensure the content is vertically justified as seen in the image */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    min-height: 350px; /* Force minimum height to align with chart */
+}
+
+.hod-summary-card:hover {
+    transform: translateY(-5px);
+}
+
+.hod-card-label {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #fff;
+    /* RESTORED: Specific margin to force label high and number low, matching image */
+    margin-bottom: 120px; 
+}
+
+.hod-card-value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Chart Section - Right Column */
+.hod-dashboard-chart-section {
+    /* Restore float-like behavior */
+    float: right;
+    width: 73%; /* Fixed width to fill remaining space */
+
+    /* Remove previous conflicting margin hacks: */
+    margin-left: 0; 
+    margin-top: -1.5%; /* Aligns with the summary card's start */
+    
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    min-height: 350px; /* Ensure chart height aligns with summary card */
+}
+
+.hod-chart-container-bar {
+    width: 100%;
+    height: 300px;
+}
+
+/* * CRITICAL FIX: Clear the floats before the table section (hod-recent-latecomers-section) 
+* This prevents the table from flowing up next to the summary/chart sections.
+*/
+.hod-recent-latecomers-section {
+    clear: both; 
+    
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    margin-top: 30px; /* Add clean top margin after clearing */
+}
+
 .hod-section-header {
     display: flex;
     justify-content: space-between;
@@ -281,237 +196,207 @@
     margin-bottom: 1rem;
 }
 
-.hod-download-pdf-btn {
-    background-color: #85e26b;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
+.hod-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0;
+}
+
+.hod-download-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.hod-download-pdf-btn,
+.hod-download-excel-btn {
+    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
     transition: background-color 0.2s;
+    border: none;
+    color: white;
+}
+
+.hod-download-pdf-btn {
+    background-color: #85e26b;
 }
 
 .hod-download-pdf-btn:hover {
     background-color: #6bc053;
 }
 
-.hod-quick-filter-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 5px;
-}
-
-.hod-quick-filter-btn {
-    padding: 5px 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
-.hod-quick-filter-btn:hover {
-    background-color: #e0e0e0;
-}
-.hod-download-buttons {
-    display: flex;
-    gap: 10px;
-}
-
 .hod-download-excel-btn {
     background-color: #21a366;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
 }
 
 .hod-download-excel-btn:hover {
     background-color: #1a8a57;
 }
-/* ============================= */
-/* RESPONSIVE DESIGN ADJUSTMENTS */
-/* ============================= */
 
-/* Small devices (phones) */
-@media (max-width: 600px) {
-  .hod-dashboard {
-    padding: 10px;
-  }
-
-  .hod-dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    height: auto;
-    padding: 15px;
-    gap: 10px;
-  }
-
-  .hod-dashboard-title {
-    font-size: 1.3rem;
-  }
-
-  .hod-header-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .hod-dashboard-filters {
-    flex-direction: column;
-    align-items: stretch;
-    height: auto;
-    padding: 15px;
-    gap: 15px;
-  }
-
-  .hod-dashboard-summary-grid {
-    grid-template-columns: 1fr;
-    width: 100%;
-    height: auto;
-    margin-top: 10px;
-  }
-
-  .hod-dashboard-chart-section {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 10px;
-    padding: 15px;
-  }
-
-  .hod-recent-latecomers-section {
-    padding: 15px;
-  }
-
-  .hod-section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .hod-download-buttons {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .hod-students-table-container {
-    padding: 10px;
+/* Table styles */
+.hod-students-table-container {
+    padding: 20px;
+    border-radius: 12px;
     overflow-x: auto;
-  }
-
-  .hod-students-table th,
-  .hod-students-table td {
-    padding: 10px;
-    font-size: 0.85rem;
-  }
-
-  .hod-card-label {
-    font-size: 1rem;
-    margin-bottom: 20px;
-  }
-
-  .hod-card-value {
-    font-size: 2rem;
-  }
 }
 
-/* Medium devices (tablets) */
-@media (max-width: 900px) {
-  .hod-dashboard-summary-grid {
-    grid-template-columns: repeat(2, 1fr);
+.hod-students-table {
     width: 100%;
-    height: auto;
-  }
-
-  .hod-dashboard-chart-section {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 10px;
-  }
-
-  .hod-recent-latecomers-section {
-    margin-top: 10px;
-  }
-
-  .hod-filter-box {
-    min-width: 150px;
-  }
+    border-collapse: collapse;
 }
 
-/* Large tablets & small laptops */
-@media (max-width: 1200px) {
-  .hod-dashboard-summary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    width: 100%;
-  }
-
-  .hod-dashboard-chart-section {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 10px;
-  }
-
-  .hod-students-table-container {
-    overflow-x: auto;
-  }
-}
-/* ================================== */
-/* STUDENT TABLE RESPONSIVENESS FIXES */
-/* ================================== */
-
-/* Stack table cells on small screens */
-@media (max-width: 700px) {
-  .hod-students-table,
-  .hod-students-table thead,
-  .hod-students-table tbody,
-  .hod-students-table th,
-  .hod-students-table td,
-  .hod-students-table tr {
-    display: block;
-    width: 100%;
-  }
-
-  .hod-students-table thead {
-    display: none; /* Hide headers for mobile */
-  }
-
-  .hod-students-table tr {
-    margin-bottom: 15px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    padding: 10px;
-    background-color: #fff;
-  }
-
-  .hod-students-table td {
-    text-align: right;
-    padding: 10px;
-    position: relative;
-    font-size: 0.9rem;
-    border: none;
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  .hod-students-table td:last-child {
-    border-bottom: none;
-  }
-
-  /* Add labels before each cell using data-label attribute */
-  .hod-students-table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 10px;
-    width: 50%;
-    white-space: nowrap;
+.hod-students-table th,
+.hod-students-table td {
+    padding: 15px;
     text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.hod-students-table th {
     font-weight: 600;
     color: #555;
-  }
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    background-color: #f9f9f9;
+}
+
+.hod-students-table tr:hover {
+    background-color: #fafafa;
+}
+
+/* === Utility & Status Messages === */
+.hod-loading-message,
+.hod-no-data-message {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2rem;
+    color: #666;
+    font-style: italic;
+}
+
+.hod-error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* ===================================== */
+/* === RESPONSIVE DESIGN (Media Queries) === */
+/* ===================================== */
+
+/* Tablet and below: stack summary and chart sections */
+@media (max-width: 900px) {
+    .hod-dashboard-summary-grid,
+    .hod-dashboard-chart-section {
+        float: none; /* Disable float */
+        width: 100%; /* Take full width */
+        margin-left: 0;
+        margin-top: 0;
+        min-height: auto; /* Allow dynamic height */
+    }
+
+    .hod-dashboard-summary-grid {
+        /* Allow cards to display horizontally if there's space on tablets */
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        margin-bottom: 20px;
+    }
+    
+    .hod-summary-card {
+        min-height: auto;
+    }
+    
+    .hod-card-label {
+        /* Reset vertical alignment for smaller screens */
+        margin-bottom: 15px; 
+    }
+    
+    .hod-recent-latecomers-section {
+        clear: both; /* Ensure clearing still works */
+        margin-top: 20px;
+    }
+}
+
+/* Small devices (phones) - Table responsiveness is critical here */
+@media (max-width: 600px) {
+    .hod-dashboard {
+        padding: 15px;
+    }
+
+    .hod-dashboard-header,
+    .hod-dashboard-filters,
+    .hod-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+    }
+    
+    .hod-header-actions,
+    .hod-download-buttons {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    .hod-download-pdf-btn, .hod-download-excel-btn {
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    .hod-dashboard-summary-grid {
+        /* Back to single column for summary card on small phones */
+        grid-template-columns: 1fr;
+    }
+
+    /* Table Responsiveness (Mobile Cards) */
+    .hod-students-table,
+    .hod-students-table thead,
+    .hod-students-table tbody,
+    .hod-students-table th,
+    .hod-students-table td,
+    .hod-students-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .hod-students-table thead {
+        display: none;
+    }
+
+    .hod-students-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        padding: 10px;
+    }
+
+    .hod-students-table td {
+        text-align: right;
+        padding: 10px;
+        position: relative;
+        font-size: 0.9rem;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .hod-students-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 50%;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: #555;
+    }
+    .hod-students-table td:last-child {
+        border-bottom: none;
+    }
 }
