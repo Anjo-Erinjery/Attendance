@@ -49,7 +49,12 @@ const shuffleArray = (array: any[]) => {
 };
 
 // Separate component for RecentLateEntries for better code organization
-const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: string, totalLatecomers: number }> = ({ entries, filterMode }) => {
+const RecentLateEntries: React.FC<{ 
+    entries: DjangoLateArrival[], 
+    filterMode: string, 
+    totalLatecomers: number,
+    dateDisplayString: string 
+}> = ({ entries, filterMode, dateDisplayString }) => { 
     const formatTimestamp = (isoString: string) => {
         if (!isoString) return 'N/A';
         const date = new Date(isoString);
@@ -159,7 +164,7 @@ const RecentLateEntries: React.FC<{ entries: DjangoLateArrival[], filterMode: st
 
     return (
         <section className="recent-latecomers-section">
-            <h3 className="section-title">Recent Late Entries ({filterMode === 'currentDay' ? 'Today' : 'This Period'})</h3>
+            <h3 className="section-title">Recent Late Entries ({dateDisplayString})</h3> 
             <div className="header-actions" style={{ marginBottom: '15px' }}>
                 <button
                     onClick={handlePrintPdf}
@@ -244,24 +249,52 @@ const PrincipalDashboard: React.FC = () => {
     const [isLoadingPrincipalDashboardDjangoData, setIsLoadingPrincipalDashboardDjangoData] = useState(true);
     const [errorPrincipalDashboardDjango, setErrorPrincipalDashboardDjango] = useState<string | null>(null);
 
-    const formatDateToISO = (date: Date): string => date.toISOString().split('T')[0];
+    /**
+     * Converts a Date object to 'YYYY-MM-DD' string format for filtering comparisons.
+     */
+    const formatDateToISO = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
-    const getStartOfWeek = (date: Date): Date => {
+    /**
+     * 💡 MODIFIED: Converts a date string to the requested display format (e.g., "01-Jan-2025").
+     */
+    const formatDateToDisplay = (dateString: string): string => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).replace(/ /g, '-'); // Replace spaces with hyphens
+    };
+
+    /**
+     * Calculates the start of the LAST week (Sunday).
+     */
+    const getStartOfLastWeek = (date: Date): Date => {
         const d = new Date(date);
-        const day = d.getDay();
-        const diff = d.getDate() - day;
-        d.setDate(diff);
+        // Move back to the start of the current week (Sunday)
+        const day = d.getDay(); // 0 for Sunday, 6 for Saturday
+        const diff = d.getDate() - day; 
+        d.setDate(diff - 7); // Go back one full week (7 days)
         d.setHours(0, 0, 0, 0);
         return d;
     };
 
-    const getEndOfWeek = (date: Date): Date => {
-        const d = new Date(getStartOfWeek(date));
-        d.setDate(d.getDate() + 6);
+    /**
+     * Calculates the end of the LAST week (Saturday).
+     */
+    const getEndOfLastWeek = (date: Date): Date => {
+        const d = new Date(getStartOfLastWeek(date));
+        d.setDate(d.getDate() + 6); // Add 6 days to get to Saturday
         d.setHours(23, 59, 59, 999);
         return d;
     };
 
+    // Use current month logic for monthly filter (no change)
     const getStartOfMonth = (date: Date): Date => {
         const d = new Date(date.getFullYear(), date.getMonth(), 1);
         d.setHours(0, 0, 0, 0);
@@ -274,6 +307,9 @@ const PrincipalDashboard: React.FC = () => {
         return d;
     };
 
+    /**
+     * Uses Last Week calculation for 'weekly' mode.
+     */
     const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const mode = event.target.value;
         setFilterMode(mode);
@@ -283,10 +319,12 @@ const PrincipalDashboard: React.FC = () => {
             setStartDate('');
             setEndDate('');
         } else if (mode === 'weekly') {
-            setStartDate(formatDateToISO(getStartOfWeek(now)));
-            setEndDate(formatDateToISO(getEndOfWeek(now)));
+            // Set to Last Week
+            setStartDate(formatDateToISO(getStartOfLastWeek(now)));
+            setEndDate(formatDateToISO(getEndOfLastWeek(now)));
             setSpecificDate('');
         } else if (mode === 'monthly') {
+            // Set to Current Month (as before)
             setStartDate(formatDateToISO(getStartOfMonth(now)));
             setEndDate(formatDateToISO(getEndOfMonth(now)));
             setSpecificDate('');
@@ -421,10 +459,12 @@ const PrincipalDashboard: React.FC = () => {
                 setUgPgOptions(['All', ...uniqueUgPg.sort((a, b) => String(a).localeCompare(String(b)))]);
 
                 const now = new Date();
+                // Initialize filters based on the default state
                 if (filterMode === 'currentDay') {
+                    // No date range to set
                 } else if (filterMode === 'weekly') {
-                    setStartDate(formatDateToISO(getStartOfWeek(now)));
-                    setEndDate(formatDateToISO(getEndOfWeek(now)));
+                    setStartDate(formatDateToISO(getStartOfLastWeek(now))); // Set to Last Week
+                    setEndDate(formatDateToISO(getEndOfLastWeek(now)));     // Set to Last Week
                 } else if (filterMode === 'monthly') {
                     setStartDate(formatDateToISO(getStartOfMonth(now)));
                     setEndDate(formatDateToISO(getEndOfMonth(now)));
@@ -454,6 +494,9 @@ const PrincipalDashboard: React.FC = () => {
     const filterLateArrivals = (arrivals: DjangoLateArrival[]) => {
         const startFilterDate = startDate ? new Date(startDate) : null;
         const endFilterDate = endDate ? new Date(endDate) : null;
+        
+        // Get today's date in 'YYYY-MM-DD' format
+        const todayISO = formatDateToISO(new Date());
 
         return arrivals.filter(arrival => {
             const arrivalDateTime = new Date(arrival.timestamp);
@@ -461,18 +504,15 @@ const PrincipalDashboard: React.FC = () => {
 
             let isWithinDateRange = false;
             if (filterMode === 'currentDay') {
-                const latestDashboardDate = arrivals.reduce((latest, current) => {
-                    const currentDate = new Date(current.timestamp);
-                    return latest && latest.getTime() > currentDate.getTime() ? latest : currentDate;
-                }, new Date(0));
-                const latestDashboardDateISO = latestDashboardDate ? formatDateToISO(latestDashboardDate) : '';
-                isWithinDateRange = arrivalDateOnlyISO === latestDashboardDateISO;
+                // Compare arrival date to the ACTUAL current date
+                isWithinDateRange = arrivalDateOnlyISO === todayISO;
             } else if (filterMode === 'specificDate' && specificDate) {
                 isWithinDateRange = arrivalDateOnlyISO === specificDate;
             } else if ((filterMode === 'weekly' || filterMode === 'monthly') && startFilterDate && endFilterDate) {
+                // For range filters, we compare the timestamp against the start (00:00:00) and end (23:59:59)
                 const adjustedEndFilterDate = new Date(endFilterDate);
                 adjustedEndFilterDate.setHours(23, 59, 59, 999);
-                isWithinDateRange = arrivalDateTime >= startFilterDate && arrivalDateTime <= adjustedEndFilterDate;
+                isWithinDateRange = arrivalDateTime.getTime() >= startFilterDate.getTime() && arrivalDateTime.getTime() <= adjustedEndFilterDate.getTime();
             }
 
             const isWithinDepartment = selectedDepartment === 'All' ||
@@ -491,13 +531,12 @@ const PrincipalDashboard: React.FC = () => {
     const lateStudentsCount = filteredLateArrivals.length;
 
     // ***************************************************************
-    // ** UPDATED FUNCTION: Sorts by count (desc) and ensures a Top 10 list (filling with random empty deps) **
+    // ** DEPARTMENT LATECOMERS DATA **
     // ***************************************************************
     const departmentLatecomersData = () => {
         const allDepartmentNames = departments.filter(d => d !== 'All');
         const departmentCounts: { [key: string]: number } = {};
 
-        // 1. COLLECT: Initialize counts for all departments and count latecomers
         allDepartmentNames.forEach(dept => {
             departmentCounts[dept] = 0;
         });
@@ -509,54 +548,48 @@ const PrincipalDashboard: React.FC = () => {
             }
         });
 
-        // Convert the map to an array of objects
         let data = Object.keys(departmentCounts).map(dept => ({
             department: dept,
             latecomers: departmentCounts[dept],
         }));
 
-        // Separate departments into non-empty and empty lists
         let nonZeroData = data.filter(d => d.latecomers > 0);
         let zeroData = data.filter(d => d.latecomers === 0);
 
-        // 2. SORT NON-ZERO: Sort by latecomers count in descending order
         nonZeroData.sort((a, b) => b.latecomers - a.latecomers);
 
         const MAX_DEPARTMENTS_TO_DISPLAY = 10;
 
         if (nonZeroData.length >= MAX_DEPARTMENTS_TO_DISPLAY) {
-            // If there are 10 or more departments with latecomers, just show the top 10
             return nonZeroData.slice(0, MAX_DEPARTMENTS_TO_DISPLAY);
         }
 
-        // 3. SHUFFLE EMPTY: If we need to fill the remaining spots, shuffle the zero-count departments
         const requiredEmptySpots = MAX_DEPARTMENTS_TO_DISPLAY - nonZeroData.length;
         const shuffledZeroData = shuffleArray(zeroData);
 
-        // 4. COMBINE & LIMIT: Take the necessary number of shuffled empty departments
         const fillerData = shuffledZeroData.slice(0, requiredEmptySpots);
 
-        // Combine the top departments and the random filler departments
         return [...nonZeroData, ...fillerData];
     };
     // ***************************************************************
 
+    /**
+     * Creates the fully formatted display string for the dashboard cards/titles.
+     */
     const getDisplayDateInfo = (): string => {
         if (filterMode === 'currentDay') {
-            const latestTimestamp = principalDashboardDjangoData?.late_arrivals.reduce((latest, arrival) => {
-                const arrivalDate = new Date(arrival.timestamp);
-                return latest && latest.getTime() > arrivalDate.getTime() ? latest : arrivalDate;
-            }, new Date(0));
-            return latestTimestamp ? formatDateToISO(latestTimestamp) : 'Today';
+            return `Today (${formatDateToDisplay(formatDateToISO(new Date()))})`;
         } else if (filterMode === 'specificDate' && specificDate) {
-            return specificDate;
+            return formatDateToDisplay(specificDate);
         } else if (filterMode === 'weekly' && startDate && endDate) {
-            return `${startDate} to ${endDate}`;
+            const startDisplay = formatDateToDisplay(startDate);
+            const endDisplay = formatDateToDisplay(endDate);
+            return `${startDisplay} to ${endDisplay}`;
         } else if (filterMode === 'monthly' && startDate && endDate) {
             const month = new Date(startDate).toLocaleString('en-US', { month: 'long', year: 'numeric' });
             return `Month of ${month}`;
         }
-        return 'Today';
+        return `Today (${formatDateToDisplay(formatDateToISO(new Date()))})`; // Fallback
     };
 
     const recentLateEntriesForDisplay = () => {
@@ -585,6 +618,8 @@ const PrincipalDashboard: React.FC = () => {
         '#F8BBD0'  // Light Rose
     ];
 
+    const displayDateInfo = getDisplayDateInfo(); // Calculate once
+
     return (
         <div className="principal-dashboard">
             <header className="dashboard-header">
@@ -602,8 +637,8 @@ const PrincipalDashboard: React.FC = () => {
                     <label htmlFor="date-filter-mode">Filter By</label>
                     <select id="date-filter-mode" onChange={handleFilterModeChange} value={filterMode}>
                         <option value="currentDay">Current Day</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
+                        <option value="weekly">Last Week</option>
+                        <option value="monthly">Current Month</option>
                         <option value="specificDate">Specific Date</option>
                     </select>
                 </div>
@@ -664,10 +699,10 @@ const PrincipalDashboard: React.FC = () => {
                 <p className="loading-message">Loading dashboard data...</p>
             ) : (
                 <div className="dashboard-main-grid">
-                    {/* TOTAL LATECOMERS SUMMARY CARD - KEPT */}
+                    {/* TOTAL LATECOMERS SUMMARY CARD - NOW USES displayDateInfo */}
                     <div className="summary-card-container">
                         <section className="summary-card">
-                            <h3 className="card-label">Total Latecomers <br/>({getDisplayDateInfo()})</h3>
+                            <h3 className="card-label">Total Latecomers <br/>({displayDateInfo})</h3>
                             <p className="card-value">{lateStudentsCount}</p>
                         </section>
                     </div>
@@ -712,7 +747,12 @@ const PrincipalDashboard: React.FC = () => {
                     </div>
 
                     <div className="recent-entries-section-container">
-                        <RecentLateEntries entries={recentLateEntriesForDisplay()} filterMode={filterMode} totalLatecomers={lateStudentsCount} />
+                        <RecentLateEntries 
+                            entries={recentLateEntriesForDisplay()} 
+                            filterMode={filterMode} 
+                            totalLatecomers={lateStudentsCount}
+                            dateDisplayString={displayDateInfo} // <-- PASSED TO CHILD
+                        />
                     </div>
                 </div>
             )}
