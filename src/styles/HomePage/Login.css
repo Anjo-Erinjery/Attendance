@@ -1,70 +1,127 @@
+/* Base Layout */
 .main-login {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f0f0f0;
   background-image: url("https://gyaanarth.com/wp-content/uploads/2022/07/unnamed-file-scaled.jpg");
   background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 20px;
 }
 
+/* Login Box */
 .login-container {
+  width: 100%;
   max-width: 400px;
-  margin: 100px auto;
   padding: 30px;
-  background-color: #f7f7f7;
+  background-color: rgba(247, 247, 247, 0.95);
   box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  border-radius: 10px;
+  border-radius: 12px;
   text-align: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-image: inherit;
-  background-size: cover;
+  backdrop-filter: blur(4px);
 }
 
+/* Heading */
 .login-container h2 {
-  margin-bottom: 20px;
-  font-size: 24px;
+  margin-bottom: 25px;
+  font-size: clamp(20px, 2vw, 26px);
   color: #333;
   font-weight: 600;
 }
 
+/* Input Fields */
 .login-container input {
   width: 100%;
-  padding: 12px;
+  padding: 12px 14px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 16px;
-  font-weight: 400;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .login-container input:focus {
   outline: none;
-  border-color: #555;
-  box-shadow: 0 0 5px rgba(85, 85, 85, 0.5);
+  border-color: #8e4343;
+  box-shadow: 0 0 6px rgba(142, 67, 67, 0.4);
 }
 
+/* Login Button */
 .login-container button {
   width: 100%;
   padding: 12px;
   background-color: #8e4343;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .login-container button:hover {
-  background-color: #444;
+  background-color: #6b3030;
+  transform: translateY(-2px);
 }
 
+/* Responsive Typography */
+body, input, button {
+  font-size: clamp(14px, 1.2vw, 16px);
+}
+
+/* ======= RESPONSIVE BREAKPOINTS ======= */
+
+/* Small phones (portrait) */
 @media (max-width: 480px) {
+  .main-login {
+    padding: 15px;
+  }
+
   .login-container {
-    margin: 50px 20px;
     padding: 20px;
+    border-radius: 10px;
+  }
+
+  .login-container h2 {
+    font-size: 20px;
+  }
+
+  .login-container input,
+  .login-container button {
+    font-size: 15px;
+  }
+}
+
+/* Tablets (landscape & portrait) */
+@media (max-width: 768px) {
+  .main-login {
+    padding: 30px;
+  }
+
+  .login-container {
+    max-width: 90%;
+    padding: 25px;
+  }
+}
+
+/* Medium desktops */
+@media (max-width: 1024px) {
+  .login-container {
+    max-width: 420px;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1440px) {
+  .login-container {
+    max-width: 450px;
+  }
+  .login-container h2 {
+    font-size: 28px;
   }
 }
