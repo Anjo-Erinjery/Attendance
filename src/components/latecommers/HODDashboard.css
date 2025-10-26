@@ -381,18 +381,22 @@
     .hod-students-table td {
         text-align: right;
         padding: 10px;
+        padding-left: 55%;
         position: relative;
         font-size: 0.9rem;
         border: none;
         border-bottom: 1px solid #f0f0f0;
+        white-space: normal;
     }
     .hod-students-table td::before {
         content: attr(data-label);
         position: absolute;
         left: 10px;
-        width: 50%;
+        width: 45%;
         white-space: nowrap;
         text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
         font-weight: 600;
         color: #555;
     }
