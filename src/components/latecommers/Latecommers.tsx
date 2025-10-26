@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
-import { ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Bar, Tooltip } from 'recharts';
+import { ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Bar, Tooltip, Cell } from 'recharts';
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "./HODDashboard.css";
@@ -384,9 +384,12 @@ const LatecomersPage: React.FC = () => {
         end: string,
         batch: string
     ): LateArrival[] => {
+        // Get today's date and time information for comparison
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
         
+        // Create a Date object for the beginning of the local day (midnight)
+        const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
         // Define the date range if in dateRange mode
         const startDateObj = start ? new Date(start) : null;
         const endDateObj = end ? new Date(end) : null;
@@ -396,8 +399,12 @@ const LatecomersPage: React.FC = () => {
             const arrivalDateObj = new Date(arrival.timestamp);
             
             let dateMatch = false;
+            
             if (mode === 'today') {
-                dateMatch = arrivalDate === today;
+                // FIX: Check if the arrival timestamp is greater than or equal to today's midnight (local time)
+                // This correctly handles timezone differences and ensures "today" means since local midnight.
+                dateMatch = arrivalDateObj.getTime() >= todayMidnight.getTime();
+                
             } else if (mode === 'specificDate' && date) {
                 dateMatch = arrivalDate === date;
             } else if (mode === 'weekly' || mode === 'monthly' || mode === 'dateRange') {
@@ -436,6 +443,11 @@ const LatecomersPage: React.FC = () => {
         const dailyCounts: { [date: string]: number } = {};
         const today = new Date();
         
+        // Calculate the date 7 days ago (start of the filtering window)
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day 7 days ago
+
         // Initialize last 7 days with zero counts
         for (let i = 6; i >= 0; i--) {
             const d = new Date(today);
@@ -446,9 +458,14 @@ const LatecomersPage: React.FC = () => {
 
         // Count arrivals for each day
         arrivals.forEach(arrival => {
-            const arrivalDate = new Date(arrival.timestamp).toISOString().split('T')[0];
-            if (dailyCounts.hasOwnProperty(arrivalDate)) {
-                dailyCounts[arrivalDate]++;
+            const arrivalDateObj = new Date(arrival.timestamp);
+            
+            // Only process data that falls within the last 7 days (since 7 days ago midnight)
+            if (arrivalDateObj.getTime() >= sevenDaysAgo.getTime()) { 
+                const arrivalDate = arrivalDateObj.toISOString().split('T')[0];
+                if (dailyCounts.hasOwnProperty(arrivalDate)) {
+                    dailyCounts[arrivalDate]++;
+                }
             }
         });
 
@@ -497,7 +514,10 @@ const LatecomersPage: React.FC = () => {
     const getCardTitle = () => {
         switch(filterMode) {
             case 'today':
-                return 'Today';
+                // For 'today', get the actual current date for the card title
+                const now = new Date();
+                const todayFormatted = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                return `Today (${todayFormatted})`;
             case 'specificDate':
                 return specificDate || 'Specific Date';
             case 'weekly':
@@ -541,7 +561,7 @@ const LatecomersPage: React.FC = () => {
         '#D1C4E9', // Light Purple
         '#BBDEFB', // Light Blue
         '#F8BBD0'  // Light Rose
-    ];
+    ];
 
     return (
         <div className="hod-dashboard">
@@ -632,7 +652,23 @@ const LatecomersPage: React.FC = () => {
                                 <XAxis dataKey={isDateRangeMode ? "name" : "date"} />
                                 <YAxis />
                                 <Tooltip />
-                                <Bar dataKey="latecomers" fill={PASTEL_COLORS[0]} name="Latecomers" />
+                                
+                                {/* 🎯 FIX: Replacing single <Bar> with map for multi-color support */}
+                                {/* {chartData.map((entry, index) => (
+                                    <Bar 
+                                        key={`bar-${index}`}
+                                        dataKey="latecomers" 
+                                        data={[entry]} // Pass individual data point
+                                        fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} 
+                                        name={isDateRangeMode ? entry.name : entry.date} 
+                                    />
+                                ))} */}
+                                <Bar dataKey="latecomers" name="Latecomers">
+  {chartData.map((entry, index) => (
+    <Cell key={`cell-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} />
+  ))}
+</Bar>
+
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
