@@ -95,7 +95,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                     <table ref={tableRef} className="hod-students-table">
                         <thead>
                             <tr>
-                                <th>Student Name</th>
+                                <th>Name</th>
                                 {isDateRangeMode ? (
                                     <th>Total Late Count</th>
                                 ) : (
