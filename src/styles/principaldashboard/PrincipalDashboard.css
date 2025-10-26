@@ -148,7 +148,7 @@
 /* Chart Section */
 .dashboard-chart-section {
     background-color: #fff;
-    padding: 30px;
+    padding: 50px;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.08);
     display: flex;
@@ -156,7 +156,8 @@
     justify-content: center;
     align-items: center;
     height: 400px;
-    margin-top: 5px;
+    margin-top: 3px;
+    margin-bottom: 15px;
 }
 
 .section-title {
