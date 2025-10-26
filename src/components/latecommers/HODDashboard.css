@@ -333,3 +333,185 @@
 .hod-download-excel-btn:hover {
     background-color: #1a8a57;
 }
+/* ============================= */
+/* RESPONSIVE DESIGN ADJUSTMENTS */
+/* ============================= */
+
+/* Small devices (phones) */
+@media (max-width: 600px) {
+  .hod-dashboard {
+    padding: 10px;
+  }
+
+  .hod-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .hod-dashboard-title {
+    font-size: 1.3rem;
+  }
+
+  .hod-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .hod-dashboard-filters {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .hod-dashboard-summary-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+    height: auto;
+    margin-top: 10px;
+  }
+
+  .hod-dashboard-chart-section {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+    padding: 15px;
+  }
+
+  .hod-recent-latecomers-section {
+    padding: 15px;
+  }
+
+  .hod-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .hod-download-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .hod-students-table-container {
+    padding: 10px;
+    overflow-x: auto;
+  }
+
+  .hod-students-table th,
+  .hod-students-table td {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .hod-card-label {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  .hod-card-value {
+    font-size: 2rem;
+  }
+}
+
+/* Medium devices (tablets) */
+@media (max-width: 900px) {
+  .hod-dashboard-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+    height: auto;
+  }
+
+  .hod-dashboard-chart-section {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+
+  .hod-recent-latecomers-section {
+    margin-top: 10px;
+  }
+
+  .hod-filter-box {
+    min-width: 150px;
+  }
+}
+
+/* Large tablets & small laptops */
+@media (max-width: 1200px) {
+  .hod-dashboard-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    width: 100%;
+  }
+
+  .hod-dashboard-chart-section {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+
+  .hod-students-table-container {
+    overflow-x: auto;
+  }
+}
+/* ================================== */
+/* STUDENT TABLE RESPONSIVENESS FIXES */
+/* ================================== */
+
+/* Stack table cells on small screens */
+@media (max-width: 700px) {
+  .hod-students-table,
+  .hod-students-table thead,
+  .hod-students-table tbody,
+  .hod-students-table th,
+  .hod-students-table td,
+  .hod-students-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .hod-students-table thead {
+    display: none; /* Hide headers for mobile */
+  }
+
+  .hod-students-table tr {
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 10px;
+    background-color: #fff;
+  }
+
+  .hod-students-table td {
+    text-align: right;
+    padding: 10px;
+    position: relative;
+    font-size: 0.9rem;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .hod-students-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Add labels before each cell using data-label attribute */
+  .hod-students-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 50%;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+  }
+}
