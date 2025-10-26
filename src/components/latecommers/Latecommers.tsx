@@ -124,7 +124,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                             ) : (
                                 sortedRecentStudents.map((student, index) => (
                                     <tr key={index}>
-                                        <td data-label="Student Name">{student.student_name}</td>
+                                        <td data-label="Name">{student.student_name}</td>
                                         <td data-label="Date">{formatDate(student.timestamp)}</td>
                                         <td data-label="Arrival Time">{formatTime(student.timestamp)}</td>
                                         <td data-label="Batch">{student.batch}</td>
