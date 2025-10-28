@@ -238,6 +238,7 @@ const LatecomersPage: React.FC = () => {
     const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const newFilterMode = event.target.value;
         setFilterMode(newFilterMode);
+        setSearchTerm('');
         
         // Reset date fields when mode changes
         if (newFilterMode !== 'specificDate') setSpecificDate('');
@@ -257,22 +258,26 @@ const LatecomersPage: React.FC = () => {
     const handleSpecificDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSpecificDate(event.target.value);
         setFilterMode('specificDate');
+        setSearchTerm('');
     };
 
     // Handlers for date range inputs
     const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setStartDate(event.target.value);
         setFilterMode('dateRange');
+        setSearchTerm('');
     };
 
     const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEndDate(event.target.value);
         setFilterMode('dateRange');
+        setSearchTerm('');
     };
     
     // Handler for batch filter change
     const handleBatchChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBatch(event.target.value);
+        setSearchTerm('');
         // Don't change filterMode when selecting batch
     };
 
