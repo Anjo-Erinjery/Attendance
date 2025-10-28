@@ -37,6 +37,8 @@ interface StudentTableProps {
  * A dynamic table component that displays either detailed daily records or a summary
  * of late counts for a date range.
  */
+
+
 const StudentTable: React.FC<StudentTableProps> = ({ 
     students, 
     isDateRangeMode, 
@@ -166,6 +168,7 @@ const LatecomersPage: React.FC = () => {
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
     const [showDateRange, setShowDateRange] = useState<boolean>(false);
+
     
     // Effect to fetch all data on initial load
     useEffect(() => {
@@ -361,7 +364,12 @@ const LatecomersPage: React.FC = () => {
             alert("Failed to export to Excel. Please try again.");
         }
     };
-
+    const [searchTerm, setSearchTerm] = useState<string>('');
+// Add this handler function:
+const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    
+};
     // Effect to apply filters whenever filter states change
     useEffect(() => {
         const applyFilters = () => {
@@ -369,11 +377,12 @@ const LatecomersPage: React.FC = () => {
                 setFilteredStudents([]);
                 return;
             }
-            const filtered = filterLateArrivals(students, filterMode, specificDate, startDate, endDate, selectedBatch);
+            
+            const filtered = filterLateArrivals(students, filterMode, specificDate, startDate, endDate, selectedBatch,searchTerm);
             setFilteredStudents(filtered);
         };
         applyFilters();
-    }, [students, filterMode, specificDate, startDate, endDate, selectedBatch]);
+    }, [students, filterMode, specificDate, startDate, endDate, selectedBatch,searchTerm]);
 
     // Function to filter students based on all filter states
     const filterLateArrivals = (
@@ -382,7 +391,8 @@ const LatecomersPage: React.FC = () => {
         date: string,
         start: string,
         end: string,
-        batch: string
+        batch: string,
+        searchTerm: string
     ): LateArrival[] => {
         // Get today's date and time information for comparison
         const now = new Date();
@@ -431,8 +441,14 @@ const LatecomersPage: React.FC = () => {
 
             // Filter by batch - handle 'All' option and numeric comparison
             const batchMatch = batch === 'All' || arrival.batch.toString() === batch;
+            const nameMatch = arrival.student_name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase().trim());
+        
+        // Return true only if all filters match
+        return dateMatch && batchMatch && nameMatch;
             
-            return dateMatch && batchMatch;
+            // return dateMatch && batchMatch;
         });
     };
 
@@ -584,6 +600,17 @@ const LatecomersPage: React.FC = () => {
                         <option value="all">All Records</option>
                     </select>
                 </div>
+                { filterMode==='all'?(
+                <div className="hod-filter-box">
+        <label htmlFor="student-search">Search Student Name:</label>
+        <input
+            id="student-search"
+            type="text"
+            placeholder="Start typing a name..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+        />
+    </div>):(null)}
                 {filterMode === 'specificDate' && (
                     <div className="hod-filter-box">
                         <label htmlFor="date-input">Select Date:</label>
@@ -652,17 +679,6 @@ const LatecomersPage: React.FC = () => {
                                 <XAxis dataKey={isDateRangeMode ? "name" : "date"} />
                                 <YAxis />
                                 <Tooltip />
-                                
-                                {/* 🎯 FIX: Replacing single <Bar> with map for multi-color support */}
-                                {/* {chartData.map((entry, index) => (
-                                    <Bar 
-                                        key={`bar-${index}`}
-                                        dataKey="latecomers" 
-                                        data={[entry]} // Pass individual data point
-                                        fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} 
-                                        name={isDateRangeMode ? entry.name : entry.date} 
-                                    />
-                                ))} */}
                                 <Bar dataKey="latecomers" name="Latecomers">
   {chartData.map((entry, index) => (
     <Cell key={`cell-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} />
