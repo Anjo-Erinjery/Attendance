@@ -17,6 +17,7 @@
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Subtle grey shadow */
     margin-bottom: 30px;
+    gap: 15px; /* Added gap for spacing between elements */
 }
 
 .back-button {
@@ -43,6 +44,49 @@
     color: #222;
     margin: 0;
 }
+
+/* --- NEW: Search Component --- */
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    flex-grow: 1; /* Allows it to take up available space */
+    max-width: 350px; /* Max width on desktop for better looks */
+    margin-left: auto; /* Pushes controls to the right on desktop */
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    font-size: 1rem;
+    color: #333;
+    flex-grow: 1;
+}
+
+.search-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    margin-left: 10px;
+    padding: 0;
+    font-size: 1.1rem; /* For the search icon */
+    transition: color 0.2s;
+    /* Ensure button is well-aligned */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-button:hover {
+    color: #3b82f6;
+}
+/* --- END NEW: Search Component --- */
+
 
 /* Sort Options Dropdown */
 .sort-menu-container {
@@ -145,18 +189,39 @@ tr:hover {
     }
     
     .latecomers-header {
+        /* Change to column layout to stack elements vertically */
         flex-direction: column;
         align-items: flex-start;
         padding: 15px;
+    }
+
+    .back-button {
+        margin-bottom: 15px;
+        align-self: flex-start;
     }
     
     .page-title {
         font-size: 1.5rem;
         margin-bottom: 10px;
+        align-self: flex-start;
+    }
+    
+    /* Key Fix: Search Bar takes up the full width on mobile */
+    .search-container {
+        max-width: none; /* Override desktop limit */
+        width: 100%;
+        margin-left: 0; /* Remove auto/left margins */
+        margin-right: 0;
+        /* Place the search bar below the title */
+        order: 3; 
+        margin-top: 10px;
     }
 
-    .back-button {
-        margin-bottom: 15px;
+    /* Ensure the sort menu is below the search bar or aligned to the right */
+    .sort-menu-container {
+        align-self: flex-end; /* Align the menu icon to the right */
+        order: 4;
+        margin-top: 10px;
     }
 
     /* Mobile table */

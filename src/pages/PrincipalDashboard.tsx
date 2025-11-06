@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer,
@@ -11,7 +11,8 @@ import {
     Legend,
     Cell
 } from 'recharts';
-import '../styles/principaldashboard/PrincipalDashboard.css';
+// Assuming this path is correct for your project
+import '../styles/principaldashboard/PrincipalDashboard.css'; 
 import { useAuthStore } from '../store/authStore';
 
 // Declare global jsPDF and html2canvas if loaded via CDN
@@ -39,6 +40,18 @@ interface PrincipalDashboardDjangoData {
     late_arrivals: DjangoLateArrival[];
 }
 
+// Interface for the aggregated student detail view (The new feature)
+interface StudentDetail {
+    name: string;
+    department: string;
+    batch: string;
+    ugpg: string;
+    totalLateEntries: number;
+    uniqueLateDays: number;
+    fullLateHistory: { date: string; time: string; fullTimestamp: string }[];
+}
+
+
 // Utility function to shuffle an array (Fisher-Yates algorithm)
 const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -48,24 +61,228 @@ const shuffleArray = (array: any[]) => {
     return array;
 };
 
-// Separate component for RecentLateEntries for better code organization
-const RecentLateEntries: React.FC<{ 
-    entries: DjangoLateArrival[], 
-    filterMode: string, 
-    totalLatecomers: number,
-    dateDisplayString: string 
-}> = ({ entries, filterMode, dateDisplayString }) => { 
-    const formatTimestamp = (isoString: string) => {
-        if (!isoString) return 'N/A';
-        const date = new Date(isoString);
-        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+// Utility function to format timestamp for display
+const formatTimestamp = (isoString: string) => {
+    if (!isoString) return 'N/A';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+const formatDateOnly = (isoString: string) => {
+    if (!isoString) return 'N/A';
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+
+// ***************************************************************
+// ** SEARCHED STUDENT DETAIL MODAL COMPONENT (NEW FEATURE - UPDATED) **
+// ***************************************************************
+
+const SearchedStudentDetailModal: React.FC<{
+    studentDetail: StudentDetail | null,
+    onClose: () => void,
+    searchQuery: string
+}> = ({ studentDetail, onClose, searchQuery }) => {
+
+    const handlePrintStudentDetailPdf = async () => {
+        if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+            console.error("html2canvas or jspdf library not loaded.");
+            alert("PDF generation libraries not loaded. Please ensure internet connectivity and check script tags for html2canvas and jspdf.");
+            return;
+        }
+
+        const input = document.getElementById('student-detail-modal-content');
+        if (!input || !studentDetail) {
+            alert("Could not find the student detail content to generate PDF.");
+            return;
+        }
+
+        try {
+            // Temporarily set overflow to visible for capturing the full scrollable content
+            const originalOverflow = input.style.overflow;
+            input.style.overflow = 'visible';
+
+            const canvas = await html2canvas(input, {
+                scale: 2,
+                useCORS: true,
+                // Ensure the canvas captures the entire content height
+                windowWidth: input.scrollWidth,
+                windowHeight: input.scrollHeight 
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+
+            const imgWidth = 595;
+            const pageHeight = 842;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`${studentDetail.name}_Late_Attendance_Record.pdf`);
+
+        } catch (error) {
+            console.error("Error generating student PDF:", error);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            // Restore original overflow
+            if (input) {
+                input.style.overflow = originalOverflow;
+            }
+        }
     };
 
+
+    if (!studentDetail) {
+        return (
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <button className="modal-close-button" onClick={onClose}>&times;</button>
+                    <h3 className="modal-title">Student Search Results 🔍</h3>
+                    <p className="no-data-message-centered">
+                        No student found matching **"{searchQuery}"** in the complete record.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content large-modal" onClick={e => e.stopPropagation()}>
+                
+                <div className="modal-header-container">
+                    <h3 className="modal-title">Late Attendance Record 📝</h3>
+                    <button className="modal-close-button" onClick={onClose}>&times;</button>
+                </div>
+
+                <div className="modal-body-content" id="student-detail-modal-content">
+
+                    <div className="student-detail-header">
+                        <h4 className="student-name-heading">{studentDetail.name}</h4>
+                        <button 
+                            onClick={handlePrintStudentDetailPdf}
+                            className="download-pdf-button-modal"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Download PDF
+                        </button>
+                    </div>
+                
+                    <div className="student-summary-grid">
+                        <p><strong>Department:</strong> {studentDetail.department}</p>
+                        <p><strong>Batch:</strong> {studentDetail.batch}</p>
+                        <p><strong>UG/PG:</strong> {studentDetail.ugpg}</p>
+                        <p><strong>Total Late Entries:</strong> {studentDetail.totalLateEntries}</p>
+                        <p><strong>Unique Late Days:</strong> {studentDetail.uniqueLateDays}</p>
+                    </div>
+
+                    <h4 className="history-title">Full Late History (Total: {studentDetail.totalLateEntries} entries)</h4>
+                    <div className="late-history-table-container">
+                        <table className="recent-latecomers-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Late Arrival Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {studentDetail.fullLateHistory
+                                    .sort((a, b) => new Date(b.fullTimestamp).getTime() - new Date(a.fullTimestamp).getTime())
+                                    .map((entry, index) => (
+                                    <tr key={index}>
+                                        <td>{entry.date}</td>
+                                        <td>{entry.time}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ***************************************************************
+// ** RECENT LATE ENTRIES COMPONENT **
+// ***************************************************************
+
+const RecentLateEntries: React.FC<{
+    entries: DjangoLateArrival[],
+    filterMode: string,
+    totalLatecomers: number,
+    dateDisplayString: string
+}> = ({ entries, filterMode, dateDisplayString }) => {
+    
+    // Internal search is kept here for filtering the already globally-filtered list.
+    const [searchQuery, setSearchQuery] = useState('');
+
+    /**
+     * Filters entries based on the current internal search query (secondary to the global one).
+     */
+    const getSearchFilteredEntries = (allEntries: DjangoLateArrival[]): DjangoLateArrival[] => {
+        const query = searchQuery.toLowerCase().trim();
+        if (!query) {
+            return allEntries;
+        }
+        return allEntries.filter(entry =>
+            entry.student_name.toLowerCase().includes(query) ||
+            entry.department.toLowerCase().includes(query) ||
+            entry.batch.toLowerCase().includes(query)
+        );
+    };
+
+    const searchFilteredEntries = getSearchFilteredEntries(entries);
+
     const displayTableRows = () => {
-        // Mode: 'weekly', 'monthly', or 'specificDate' (where count > 1 is possible)
-        if (filterMode !== 'currentDay') {
+        const dataToDisplay = searchFilteredEntries;
+
+        if (filterMode === 'currentDay') {
+            // Show latest arrival time for unique students
+            const uniqueStudentsMap = new Map<string, DjangoLateArrival>();
+            dataToDisplay.forEach(entry => {
+                const existing = uniqueStudentsMap.get(entry.student_name);
+                if (!existing || new Date(entry.timestamp) > new Date(existing.timestamp)) {
+                    uniqueStudentsMap.set(entry.student_name, entry);
+                }
+            });
+
+            return Array.from(uniqueStudentsMap.values())
+                .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                .map((entry, index) => (
+                    <tr key={index}>
+                        <td data-label="Student Name">{entry.student_name}</td>
+                        <td data-label="Department">{entry.department}</td>
+                        <td data-label="Batch">{entry.batch}</td>
+                        <td data-label="UG/PG">{entry.ugpg}</td>
+                        <td data-label="Late Arrival Time">{formatTimestamp(entry.timestamp)}</td>
+                    </tr>
+                ));
+        } else {
+            // Show aggregate count for unique students
             const studentPeriodCounts = new Map<string, { count: number; batch: string; ugpg: string; department: string }>();
-            entries.forEach(entry => {
+
+            dataToDisplay.forEach(entry => {
                 const key = entry.student_name;
                 studentPeriodCounts.set(key, {
                     count: (studentPeriodCounts.get(key)?.count || 0) + 1,
@@ -74,6 +291,7 @@ const RecentLateEntries: React.FC<{
                     department: entry.department,
                 });
             });
+
             return Array.from(studentPeriodCounts.entries())
                 .sort((a, b) => b[1].count - a[1].count)
                 .map(([name, data]) => (
@@ -82,23 +300,9 @@ const RecentLateEntries: React.FC<{
                         <td data-label="Department">{data.department}</td>
                         <td data-label="Batch">{data.batch}</td>
                         <td data-label="UG/PG">{data.ugpg}</td>
-                        {/* LATE COUNT is displayed here */}
                         <td data-label="Late Count">{data.count}</td>
                     </tr>
                 ));
-        } else {
-            // Mode: 'currentDay'
-            return entries.map((entry, index) => (
-                <tr key={index}>
-                    <td data-label="Student Name">{entry.student_name}</td>
-                    <td data-label="Department">{entry.department}</td>
-                    <td data-label="Batch">{entry.batch}</td>
-                    <td data-label="UG/PG">{entry.ugpg}</td>
-                    {/* LATE ARRIVAL TIME is displayed here */}
-                    <td data-label="Late Arrival Time">{formatTimestamp(entry.timestamp)}</td>
-                    {/* LATE COUNT COLUMN IS OMITTED HERE */}
-                </tr>
-            ));
         }
     };
 
@@ -114,6 +318,13 @@ const RecentLateEntries: React.FC<{
             console.error("Table section not found for PDF generation.");
             alert("Could not find the table to generate PDF.");
             return;
+        }
+        
+        // Temporarily hide search bar for clean PDF generation
+        const searchInputContainer = input.querySelector('.table-search-position') as HTMLElement;
+        const originalSearchDisplay = searchInputContainer ? searchInputContainer.style.display : null;
+        if (searchInputContainer) {
+            searchInputContainer.style.display = 'none';
         }
 
         const originalOverflow = input.style.overflow;
@@ -154,6 +365,10 @@ const RecentLateEntries: React.FC<{
             alert("Failed to generate PDF. Please try again.");
         } finally {
             input.style.overflow = originalOverflow;
+            if (searchInputContainer && originalSearchDisplay !== null) {
+                // Restore search bar display after PDF generation
+                searchInputContainer.style.display = originalSearchDisplay; 
+            }
         }
     };
 
@@ -164,7 +379,7 @@ const RecentLateEntries: React.FC<{
 
     return (
         <section className="recent-latecomers-section">
-            <h3 className="section-title">Recent Late Entries ({dateDisplayString})</h3> 
+            <h3 className="section-title">Recent Late Entries ({dateDisplayString})</h3>
             <div className="header-actions" style={{ marginBottom: '15px' }}>
                 <button
                     onClick={handlePrintPdf}
@@ -174,7 +389,29 @@ const RecentLateEntries: React.FC<{
                 </button>
             </div>
             <div id="recent-late-entries-table-section" className="recent-entries-table-container">
-                {entries.length > 0 ? (
+
+                {/* Internal Search (Optional, for filtering within the current filtered list) */}
+                <div className="search-input-container table-search-position">
+                    <input 
+                        type="text" 
+                        placeholder="Filter list..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') setSearchQuery(e.currentTarget.value);
+                        }}
+                    />
+                    <button 
+                        onClick={() => { /* State change handles it */}}
+                        className="search-button-styled"
+                    >
+                        Filter
+                    </button>
+                </div>
+
+                {entries.length > 0 && searchFilteredEntries.length === 0 ? (
+                    <p className="no-data-message">No entries found matching "{searchQuery}" in the current period.</p>
+                ) : (entries.length > 0 ? (
                     <table className="recent-latecomers-table">
                         <thead>
                             <tr>
@@ -182,9 +419,7 @@ const RecentLateEntries: React.FC<{
                                 <th>DEPARTMENT</th>
                                 <th>BATCH</th>
                                 <th>UG/PG</th>
-                                {/* Conditionally display LATE ARRIVAL TIME */}
                                 {showLateArrivalTime && <th>LATE ARRIVAL TIME</th>}
-                                {/* Conditionally display LATE COUNT (only for weekly/monthly/specific date) */}
                                 {showLateCount && <th>LATE COUNT</th>}
                             </tr>
                         </thead>
@@ -192,52 +427,51 @@ const RecentLateEntries: React.FC<{
                     </table>
                 ) : (
                     <p className="no-data-message">No recent late entries available for this period.</p>
-                )}
+                ))}
             </div>
         </section>
     );
 };
 
+
 // ***************************************************************
-// ** DYNAMIC ABBREVIATION FUNCTION (NO HARDCODING) **
+// ** UTILITY FUNCTIONS **
 // ***************************************************************
 const shortenDepartmentName = (name: string): string => {
     const trimmedName = name.trim();
-
-    // Split by any space or hyphen to correctly handle multi-word names
     const words = trimmedName.split(/[\s-]+/).filter(w => w.length > 0);
 
-    // 1. DYNAMIC INITIALS: Use initials for ALL multi-word names (e.g., "Data Science" -> "DS")
     if (words.length > 1) {
         const initials = words.map(w => w.charAt(0).toUpperCase()).join('');
-        // Limit initials length to prevent overlap
         return initials.length <= 5 ? initials : initials.substring(0, 5);
     }
 
-    // 2. STRICT TRUNCATION: If it's a single word and over 5 characters, truncate to first 3 + '.'
     const MAX_LENGTH_BEFORE_TRUNCATE = 5;
     if (trimmedName.length > MAX_LENGTH_BEFORE_TRUNCATE) {
-        // Truncate to the first 3 characters and append a period.
         return trimmedName.substring(0, 3) + '.';
     }
 
-    // Default: return the original name (it's short enough, e.g., "Math" or "Arts")
     return trimmedName;
 };
 
 // ***************************************************************
-// ** END OF DYNAMIC FUNCTION **
+// ** PRINCIPAL DASHBOARD COMPONENT **
 // ***************************************************************
-
 
 const PrincipalDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user, token, isAuthenticated, logout } = useAuthStore();
 
-    const [filterMode, setFilterMode] = useState<string>('currentDay');
+    // --- Filter States ---
+    const [filterMode, setFilterMode] = useState<string>('currentDay'); 
     const [specificDate, setSpecificDate] = useState<string>('');
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
+    
+    // Global Search States (REMAINS THE SAME)
+    const [globalSearchQuery, setGlobalSearchQuery] = useState<string>(''); 
+    const [searchedStudentDetail, setSearchedStudentDetail] = useState<StudentDetail | null>(null);
+    const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
 
     const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
     const [departments, setDepartments] = useState<string[]>(['All']);
@@ -245,13 +479,12 @@ const PrincipalDashboard: React.FC = () => {
     const [selectedUgPg, setSelectedUgPg] = useState<string | 'All'>('All');
     const [ugpgOptions, setUgPgOptions] = useState<(string | 'All')[]>(['All']);
 
+    // --- Data States ---
     const [principalDashboardDjangoData, setPrincipalDashboardDjangoData] = useState<PrincipalDashboardDjangoData | null>(null);
     const [isLoadingPrincipalDashboardDjangoData, setIsLoadingPrincipalDashboardDjangoData] = useState(true);
     const [errorPrincipalDashboardDjango, setErrorPrincipalDashboardDjango] = useState<string | null>(null);
 
-    /**
-     * Converts a Date object to 'YYYY-MM-DD' string format for filtering comparisons.
-     */
+    // --- Date Utilities (REMAINS THE SAME) ---
     const formatDateToISO = (date: Date): string => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -259,42 +492,31 @@ const PrincipalDashboard: React.FC = () => {
         return `${year}-${month}-${day}`;
     };
 
-    /**
-     * 💡 MODIFIED: Converts a date string to the requested display format (e.g., "01-Jan-2025").
-     */
     const formatDateToDisplay = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-IN', {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
-        }).replace(/ /g, '-'); // Replace spaces with hyphens
+        }).replace(/ /g, '-');
     };
 
-    /**
-     * Calculates the start of the LAST week (Sunday).
-     */
     const getStartOfLastWeek = (date: Date): Date => {
         const d = new Date(date);
-        // Move back to the start of the current week (Sunday)
-        const day = d.getDay(); // 0 for Sunday, 6 for Saturday
-        const diff = d.getDate() - day; 
-        d.setDate(diff - 7); // Go back one full week (7 days)
+        const day = d.getDay();
+        const diff = d.getDate() - day;
+        d.setDate(diff - 7);
         d.setHours(0, 0, 0, 0);
         return d;
     };
 
-    /**
-     * Calculates the end of the LAST week (Saturday).
-     */
     const getEndOfLastWeek = (date: Date): Date => {
         const d = new Date(getStartOfLastWeek(date));
-        d.setDate(d.getDate() + 6); // Add 6 days to get to Saturday
+        d.setDate(d.getDate() + 6);
         d.setHours(23, 59, 59, 999);
         return d;
     };
 
-    // Use current month logic for monthly filter (no change)
     const getStartOfMonth = (date: Date): Date => {
         const d = new Date(date.getFullYear(), date.getMonth(), 1);
         d.setHours(0, 0, 0, 0);
@@ -307,30 +529,21 @@ const PrincipalDashboard: React.FC = () => {
         return d;
     };
 
-    /**
-     * Uses Last Week calculation for 'weekly' mode.
-     */
+    // --- Handlers (REMAINS THE SAME) ---
     const handleFilterModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const mode = event.target.value;
         setFilterMode(mode);
         const now = new Date();
-        if (mode === 'currentDay') {
-            setSpecificDate('');
-            setStartDate('');
-            setEndDate('');
-        } else if (mode === 'weekly') {
-            // Set to Last Week
+        setSpecificDate('');
+        setStartDate('');
+        setEndDate('');
+
+        if (mode === 'weekly') {
             setStartDate(formatDateToISO(getStartOfLastWeek(now)));
             setEndDate(formatDateToISO(getEndOfLastWeek(now)));
-            setSpecificDate('');
         } else if (mode === 'monthly') {
-            // Set to Current Month (as before)
             setStartDate(formatDateToISO(getStartOfMonth(now)));
             setEndDate(formatDateToISO(getEndOfMonth(now)));
-            setSpecificDate('');
-        } else if (mode === 'specificDate') {
-            setStartDate('');
-            setEndDate('');
         }
     };
 
@@ -351,6 +564,58 @@ const PrincipalDashboard: React.FC = () => {
 
     const handleUgPgChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedUgPg(event.target.value);
+    };
+
+    /**
+     * Logic for Global Search (Student Detail Feature) - REMAINS THE SAME
+     */
+    const handleGlobalSearchApply = () => {
+        const searchTerms = globalSearchQuery.trim().toLowerCase();
+        
+        // Close modal if search is cleared
+        if (!searchTerms) {
+            setSearchedStudentDetail(null);
+            setShowStudentDetailModal(false);
+            return;
+        }
+
+        if (principalDashboardDjangoData) {
+            const matchingEntries = principalDashboardDjangoData.late_arrivals.filter(arrival =>
+                arrival.student_name.toLowerCase().includes(searchTerms) ||
+                arrival.batch.toLowerCase().includes(searchTerms)
+            );
+
+            if (matchingEntries.length > 0) {
+                // Assuming we track one student at a time, use the first match for details
+                const firstEntry = matchingEntries[0];
+                const fullHistory = matchingEntries.map(entry => ({
+                    date: formatDateOnly(entry.timestamp),
+                    time: formatTimestamp(entry.timestamp),
+                    fullTimestamp: entry.timestamp,
+                }));
+
+                const uniqueDays = Array.from(new Set(fullHistory.map(h => h.date))).length;
+
+                const studentDetail: StudentDetail = {
+                    name: firstEntry.student_name,
+                    department: firstEntry.department,
+                    batch: firstEntry.batch,
+                    ugpg: firstEntry.ugpg,
+                    totalLateEntries: matchingEntries.length,
+                    uniqueLateDays: uniqueDays,
+                    fullLateHistory: fullHistory,
+                };
+
+                setSearchedStudentDetail(studentDetail);
+                setShowStudentDetailModal(true);
+            } else {
+                setSearchedStudentDetail(null);
+                setShowStudentDetailModal(true); // Show modal with "No data found" message
+            }
+        } else {
+            setSearchedStudentDetail(null);
+            setShowStudentDetailModal(true); // Show modal, possibly with a message about data loading
+        }
     };
 
     const handleDepartmentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -393,14 +658,13 @@ const PrincipalDashboard: React.FC = () => {
         });
     };
 
+    // --- Effects (API and Authentication) (REMAINS THE SAME) ---
     useEffect(() => {
         if (!isAuthenticated) {
-            console.warn("User not authenticated, redirecting to login.");
             navigate('/login');
             return;
         }
         if (user && user.role !== 'Principal') {
-            console.warn(`User with role ${user.role} attempted to access Principal Dashboard. Redirecting.`);
             navigate('/');
         }
     }, [isAuthenticated, user, navigate]);
@@ -419,7 +683,6 @@ const PrincipalDashboard: React.FC = () => {
             try {
                 const API_BASE_URL_DJANGO = import.meta.env.VITE_API_URL || 'https://scanbyte-backend.onrender.com/api';
                 const endpoint = `${API_BASE_URL_DJANGO}/principal-dashboard/`;
-                console.log("Fetching from endpoint:", endpoint);
 
                 const response = await fetch(endpoint, {
                     method: 'GET',
@@ -428,8 +691,6 @@ const PrincipalDashboard: React.FC = () => {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
-
-                console.log("API Response Status:", response.status);
 
                 if (!response.ok) {
                     let errorMessage = `HTTP error! Status: ${response.status}`;
@@ -448,7 +709,6 @@ const PrincipalDashboard: React.FC = () => {
                 }
 
                 const data: PrincipalDashboardDjangoData = await response.json();
-                console.log("Successfully fetched Django data:", data);
                 setPrincipalDashboardDjangoData(data);
 
                 // Dynamically populate departments from API data
@@ -460,11 +720,9 @@ const PrincipalDashboard: React.FC = () => {
 
                 const now = new Date();
                 // Initialize filters based on the default state
-                if (filterMode === 'currentDay') {
-                    // No date range to set
-                } else if (filterMode === 'weekly') {
-                    setStartDate(formatDateToISO(getStartOfLastWeek(now))); // Set to Last Week
-                    setEndDate(formatDateToISO(getEndOfLastWeek(now)));     // Set to Last Week
+                if (filterMode === 'weekly') {
+                    setStartDate(formatDateToISO(getStartOfLastWeek(now)));
+                    setEndDate(formatDateToISO(getEndOfLastWeek(now)));
                 } else if (filterMode === 'monthly') {
                     setStartDate(formatDateToISO(getStartOfMonth(now)));
                     setEndDate(formatDateToISO(getEndOfMonth(now)));
@@ -491,28 +749,47 @@ const PrincipalDashboard: React.FC = () => {
         );
     }
 
+    /**
+     * Data Filtering Logic: APPLIES ONLY TO MAIN DASHBOARD (Chart/Table) - REMAINS THE SAME
+     */
     const filterLateArrivals = (arrivals: DjangoLateArrival[]) => {
+        // Global search is handled via the modal, so we ignore it here
+        const searchTerms = ''; 
+
+        // Step 1: Filter by Global Search (Ignored for main dashboard, left structure for consistency)
+        let dataAfterSearch: DjangoLateArrival[] = arrivals;
+
+        // Step 2: Apply Date/Mode Filters
+        if (filterMode === 'completeRecord') {
+            return dataAfterSearch.filter(arrival => {
+                const isWithinDepartment = selectedDepartment === 'All' ||
+                    arrival.department.toLowerCase().trim() === selectedDepartment.toLowerCase().trim();
+                const isWithinUgPg = selectedUgPg === 'All' || arrival.ugpg === selectedUgPg;
+                return isWithinDepartment && isWithinUgPg;
+            });
+        }
+
+        // Apply Date-based filters
         const startFilterDate = startDate ? new Date(startDate) : null;
         const endFilterDate = endDate ? new Date(endDate) : null;
-        
-        // Get today's date in 'YYYY-MM-DD' format
         const todayISO = formatDateToISO(new Date());
 
-        return arrivals.filter(arrival => {
+        return dataAfterSearch.filter(arrival => {
             const arrivalDateTime = new Date(arrival.timestamp);
             const arrivalDateOnlyISO = formatDateToISO(arrivalDateTime);
 
             let isWithinDateRange = false;
             if (filterMode === 'currentDay') {
-                // Compare arrival date to the ACTUAL current date
                 isWithinDateRange = arrivalDateOnlyISO === todayISO;
             } else if (filterMode === 'specificDate' && specificDate) {
                 isWithinDateRange = arrivalDateOnlyISO === specificDate;
             } else if ((filterMode === 'weekly' || filterMode === 'monthly') && startFilterDate && endFilterDate) {
-                // For range filters, we compare the timestamp against the start (00:00:00) and end (23:59:59)
                 const adjustedEndFilterDate = new Date(endFilterDate);
-                adjustedEndFilterDate.setHours(23, 59, 59, 999);
-                isWithinDateRange = arrivalDateTime.getTime() >= startFilterDate.getTime() && arrivalDateTime.getTime() <= adjustedEndFilterDate.getTime();
+                adjustedEndFilterDate.setHours(23, 59, 59, 999); 
+                const adjustedStartFilterDate = new Date(startFilterDate);
+                adjustedStartFilterDate.setHours(0, 0, 0, 0);
+
+                isWithinDateRange = arrivalDateTime.getTime() >= adjustedStartFilterDate.getTime() && arrivalDateTime.getTime() <= adjustedEndFilterDate.getTime();
             }
 
             const isWithinDepartment = selectedDepartment === 'All' ||
@@ -528,29 +805,31 @@ const PrincipalDashboard: React.FC = () => {
         ? filterLateArrivals(principalDashboardDjangoData.late_arrivals)
         : [];
 
-    const lateStudentsCount = filteredLateArrivals.length;
+    const lateStudentsCount = filterMode === 'currentDay'
+        ? Array.from(new Set(filteredLateArrivals.map(a => a.student_name))).length
+        : filteredLateArrivals.length > 0
+            ? Array.from(new Set(filteredLateArrivals.map(a => a.student_name))).length
+            : 0;
 
-    // ***************************************************************
-    // ** DEPARTMENT LATECOMERS DATA **
-    // ***************************************************************
-    const departmentLatecomersData = () => {
+    // --- Chart Data Calculation (REMAINS THE SAME) ---
+    const departmentLatecomersData = useMemo(() => {
         const allDepartmentNames = departments.filter(d => d !== 'All');
-        const departmentCounts: { [key: string]: number } = {};
+        const departmentStudentCounts: { [key: string]: Set<string> } = {};
 
         allDepartmentNames.forEach(dept => {
-            departmentCounts[dept] = 0;
+            departmentStudentCounts[dept] = new Set<string>();
         });
 
         filteredLateArrivals.forEach(arrival => {
             const departmentName = arrival.department;
-            if (departmentCounts.hasOwnProperty(departmentName)) {
-                departmentCounts[departmentName]++;
+            if (departmentStudentCounts.hasOwnProperty(departmentName)) {
+                departmentStudentCounts[departmentName].add(arrival.student_name);
             }
         });
-
-        let data = Object.keys(departmentCounts).map(dept => ({
+        
+        let data = Object.keys(departmentStudentCounts).map(dept => ({
             department: dept,
-            latecomers: departmentCounts[dept],
+            latecomers: departmentStudentCounts[dept].size,
         }));
 
         let nonZeroData = data.filter(d => d.latecomers > 0);
@@ -570,15 +849,25 @@ const PrincipalDashboard: React.FC = () => {
         const fillerData = shuffledZeroData.slice(0, requiredEmptySpots);
 
         return [...nonZeroData, ...fillerData];
-    };
-    // ***************************************************************
+    }, [filteredLateArrivals, departments]);
 
-    /**
-     * Creates the fully formatted display string for the dashboard cards/titles.
-     */
+    // --- Display Info Calculation (REMAINS THE SAME) ---
     const getDisplayDateInfo = (): string => {
+        if (filterMode === 'completeRecord') {
+            return `Complete Record`;
+        }
         if (filterMode === 'currentDay') {
-            return `Today (${formatDateToDisplay(formatDateToISO(new Date()))})`;
+            const latestTimestamp = filteredLateArrivals.reduce((latest, current) => {
+                const currentTimestamp = new Date(current.timestamp).getTime();
+                return currentTimestamp > latest ? currentTimestamp : latest;
+            }, 0);
+            
+            if (latestTimestamp) {
+                const latestDateISO = formatDateToISO(new Date(latestTimestamp));
+                return `Latest Record (${formatDateToDisplay(latestDateISO)})`;
+            }
+
+            return `Today's Record`;
         } else if (filterMode === 'specificDate' && specificDate) {
             return formatDateToDisplay(specificDate);
         } else if (filterMode === 'weekly' && startDate && endDate) {
@@ -589,36 +878,21 @@ const PrincipalDashboard: React.FC = () => {
             const month = new Date(startDate).toLocaleString('en-US', { month: 'long', year: 'numeric' });
             return `Month of ${month}`;
         }
-        return `Today (${formatDateToDisplay(formatDateToISO(new Date()))})`; // Fallback
+        return `Today's Record`;
     };
 
     const recentLateEntriesForDisplay = () => {
-        const sortedEntries = [...filteredLateArrivals]
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-        return sortedEntries;
+        return filteredLateArrivals;
     };
 
 
     const PASTEL_COLORS = [
-        '#AEC6CF', // Powder Blue
-        '#B3E0C9', // Mint Green
-        '#FDD49E', // Peach
-        '#E6B3B3', // Dusty Rose
-        '#C2B2D8', // Light Lavender
-        '#D5F0F6', // Sky Blue Light
-        '#D0E0E3', // Light Grey Blue
-        '#F6E8DA', // Creamy Beige
-        '#FAD2E1', // Pale Pink
-        '#C7E9B0', // Light Chartreuse
-        '#A7D9D9', // Soft Teal
-        '#FFE0B2', // Pale Orange
-        '#D1C4E9', // Light Purple
-        '#BBDEFB', // Light Blue
-        '#F8BBD0'  // Light Rose
+        '#AEC6CF', '#B3E0C9', '#FDD49E', '#E6B3B3', '#C2B2D8', 
+        '#D5F0F6', '#D0E0E3', '#F6E8DA', '#FAD2E1', '#C7E9B0', 
+        '#A7D9D9', '#FFE0B2', '#D1C4E9', '#BBDEFB', '#F8BBD0'
     ];
 
-    const displayDateInfo = getDisplayDateInfo(); // Calculate once
+    const displayDateInfo = getDisplayDateInfo();
 
     return (
         <div className="principal-dashboard">
@@ -636,12 +910,38 @@ const PrincipalDashboard: React.FC = () => {
                 <div className="filter-box">
                     <label htmlFor="date-filter-mode">Filter By</label>
                     <select id="date-filter-mode" onChange={handleFilterModeChange} value={filterMode}>
-                        <option value="currentDay">Current Day</option>
+                        <option value="currentDay">Today's Record</option>
                         <option value="weekly">Last Week</option>
                         <option value="monthly">Current Month</option>
                         <option value="specificDate">Specific Date</option>
+                        <option value="completeRecord">Complete Record (All Time)</option>
                     </select>
                 </div>
+                
+                {/* GLOBAL SEARCH FEATURE (Now triggers modal) */}
+                <div className="filter-box search-box">
+                    <label htmlFor="global-search">Search Student</label>
+                    <div className="search-input-group">
+                        <input
+                            id="global-search"
+                            type="text"
+                            placeholder="Student Name or Batch..."
+                            value={globalSearchQuery}
+                            onChange={(e) => setGlobalSearchQuery(e.target.value)}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') handleGlobalSearchApply();
+                            }}
+                        />
+                        <button 
+                            onClick={handleGlobalSearchApply} 
+                            className="search-button-styled"
+                        >
+                            Search
+                        </button>
+                    </div>
+                </div>
+                {/* END OF GLOBAL SEARCH */}
+                
                 {(filterMode === 'specificDate') && (
                     <div className="filter-box">
                         <label htmlFor="specific-date">Select Date</label>
@@ -693,28 +993,30 @@ const PrincipalDashboard: React.FC = () => {
                         ))}
                     </select>
                 </div>
+                
             </section>
-
+            
             {isLoadingPrincipalDashboardDjangoData ? (
                 <p className="loading-message">Loading dashboard data...</p>
             ) : (
                 <div className="dashboard-main-grid">
-                    {/* TOTAL LATECOMERS SUMMARY CARD - NOW USES displayDateInfo */}
+                    {/* TOTAL LATECOMERS SUMMARY CARD */}
                     <div className="summary-card-container">
                         <section className="summary-card">
-                            <h3 className="card-label">Total Latecomers <br/>({displayDateInfo})</h3>
+                            <h3 className="card-label">Total  Latecomers <br/>({displayDateInfo})</h3>
                             <p className="card-value">{lateStudentsCount}</p>
                         </section>
                     </div>
 
+                    {/* CHART SECTION */}
                     <div className="chart-section-container">
                         <section className="dashboard-chart-section">
                             <h3 className="section-title">Department Latecomers</h3>
                             <div className="chart-container-bar">
                                 <ResponsiveContainer width="100%" height={250}>
-                                    {departmentLatecomersData().length > 0 ? (
+                                    {departmentLatecomersData.length > 0 ? (
                                         <BarChart
-                                            data={departmentLatecomersData()}
+                                            data={departmentLatecomersData}
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" />
@@ -722,15 +1024,14 @@ const PrincipalDashboard: React.FC = () => {
                                                 dataKey="department"
                                                 tickFormatter={shortenDepartmentName}
                                                 height={50}
-                                                // Ensures ALL ticks are displayed
                                                 interval={0}
                                             />
                                             <YAxis />
                                             <Tooltip />
                                             <Legend />
-                                            <Bar dataKey="latecomers" name="Latecomers" onClick={handleBarClick}>
+                                            <Bar dataKey="latecomers" name="Unique Latecomers" onClick={handleBarClick}>
                                                 {
-                                                    departmentLatecomersData().map((entry, index) => (
+                                                    departmentLatecomersData.map((entry, index) => (
                                                         <Cell key={`cell-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} />
                                                     ))
                                                 }
@@ -746,15 +1047,29 @@ const PrincipalDashboard: React.FC = () => {
                         </section>
                     </div>
 
+                    {/* RECENT LATE ENTRIES TABLE SECTION */}
                     <div className="recent-entries-section-container">
-                        <RecentLateEntries 
-                            entries={recentLateEntriesForDisplay()} 
-                            filterMode={filterMode} 
+                        <RecentLateEntries
+                            entries={recentLateEntriesForDisplay()}
+                            filterMode={filterMode}
                             totalLatecomers={lateStudentsCount}
-                            dateDisplayString={displayDateInfo} // <-- PASSED TO CHILD
+                            dateDisplayString={displayDateInfo}
                         />
                     </div>
                 </div>
+            )}
+
+            {/* Render the new modal if the global search was triggered */}
+            {showStudentDetailModal && (
+                <SearchedStudentDetailModal
+                    studentDetail={searchedStudentDetail}
+                    onClose={() => {
+                        setShowStudentDetailModal(false);
+                        setSearchedStudentDetail(null);
+                        setGlobalSearchQuery('');
+                    }}
+                    searchQuery={globalSearchQuery}
+                />
             )}
         </div>
     );

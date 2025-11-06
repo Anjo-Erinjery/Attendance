@@ -47,11 +47,11 @@
 /* Filter Section */
 .dashboard-filters {
     display: flex;
-    gap: 20px;
+    gap: 15px; /* Reduced gap between filters */
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     background-color: #fff;
-    padding: 20px;
+    padding: 15px; /* Reduced padding on the container */
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.06);
     margin-bottom: 10px;
@@ -61,21 +61,42 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-width: 180px;
+    min-width: 150px; /* Reduced minimum width */
+    min-height: unset; 
+}
+
+/* 🌟 AGGRESSIVE FIX: Target the search box explicitly for layout stability */
+.filter-box.search-filter-box {
+    min-width: 250px;
+    height: 70px; /* Static height to accommodate the label and content exactly */
+    justify-content: space-between;
 }
 
 .filter-box label {
     font-size: 0.9rem;
     color: #555;
-    margin-bottom: 8px;
+    margin-bottom: 6px; /* Reduced margin */
     font-weight: 500;
 }
 
-.filter-box select, .filter-box input {
-    padding: 12px;
+/* COMPACT INPUT/SELECT FIELD SIZING */
+.filter-box select, 
+.filter-box input:not([type="date"]) {
+    padding: 10px 12px; /* Reduced vertical padding */
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.95rem; 
+    color: #333;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Special sizing for date inputs to keep consistency */
+.filter-box input[type="date"] {
+    padding: 10px 12px; 
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
     color: #333;
     background-color: #f8f9fa;
     transition: all 0.2s ease-in-out;
@@ -86,6 +107,54 @@
     border-color: #000;
     box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
 }
+
+/* ------------------------------------------- */
+/* 🛠️ FIX: SEARCH INPUT GROUP (Side-by-Side/Compact) */
+/* ------------------------------------------- */
+
+.search-input-group {
+    display: flex; /* Forces horizontal alignment */
+    flex-direction: row; 
+    align-items: center; 
+    gap: 5px; 
+    width: 100%;
+}
+
+/* Input within the search group */
+.search-input-group input[type="text"] {
+    flex-grow: 1; 
+    width: auto; 
+    padding: 10px 12px; 
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #333;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Search Button within the filter section */
+.search-input-group .search-button-styled {
+    background-color: #2c3e50; 
+    color: white;
+    padding: 10px 15px; 
+    border: none;
+    border-radius: 8px; 
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: auto; 
+    line-height: 1; 
+    height: 40px; /* Ensure button height matches input field */
+}
+
+.search-input-group .search-button-styled:hover {
+    background-color: #34495e;
+    transform: translateY(-1px);
+}
+/* ------------------------------------------- */
+
 
 /* Updated grid layout for a better visual balance */
 .dashboard-main-grid {
@@ -114,7 +183,7 @@
 .summary-card {
     background-color: #e0eeee;
     color: #333;
-    padding: 0.55555555555px;
+    padding: 15px;
     border-radius: 10px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     text-align: center;
@@ -222,8 +291,8 @@
     background-color: #f0f2f5;
 }
 
-/* Styles for the Download as PDF button - Greyscale */
-.recent-latecomers-section .header-actions button {
+/* Styles for the Download as PDF button (for the main table) - Greyscale */
+.recent-latecomers-section .header-actions button.download-pdf-button {
     background-color: #6c757d;
     color: white;
     padding: 8px 16px;
@@ -237,57 +306,70 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    /* --- ADDED: Margin to create space between the button and the header --- */
     margin-top: 15px;
 }
 
-.recent-latecomers-section .header-actions button:hover {
+.recent-latecomers-section .header-actions button.download-pdf-button:hover {
     background-color: #5a6268;
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
-.recent-latecomers-section .header-actions button:active {
-    background-color: #000000;
-    transform: translateY(0);
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+/* ---------------------------------------------------------------- */
+/* --- Search Functionality Styles (for RecentLateEntries Table) --- */
+/* ---------------------------------------------------------------- */
+
+/* Container for the search bar and button in the Recent Entries Table */
+.search-input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0; 
+    margin-bottom: 15px; 
 }
 
-/* Media Queries for Responsiveness */
-@media (max-width: 1024px) {
-    .dashboard-main-grid {
-        grid-template-areas:
-            "summary"
-            "chart"
-            "entries";
-        grid-template-columns: 1fr;
-    }
+/* Style the search input field */
+.search-input-container input[type="text"] {
+    flex-grow: 1; 
+    padding: 10px 12px; 
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #333;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-width: 150px;
 }
 
-@media (max-width: 768px) {
-    .principal-dashboard {
-        padding: 15px;
-        transform: none;
-        width: auto;
-        height: auto;
-    }
+.search-input-container input[type="text"]:focus {
+    outline: none;
+    border-color: #2c3e50; 
+    box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1); 
+}
 
-    .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 15px;
-    }
+/* Style the Filter button for the table section */
+.search-input-container .search-button-styled {
+    background-color: #2c3e50; 
+    color: white;
+    padding: 10px 15px; 
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 40px; /* Ensure button height matches input field */
+}
 
-    .dashboard-title {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-    }
+/* Position the search container correctly relative to the table */
+.table-search-position {
+    order: -1; 
+}
 
-    .header-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-
+/* Media Query Adjustments for Mobile */
+@media (max-width: 600px) {
+    /* Filters should stack on small screens */
     .dashboard-filters {
         flex-direction: column;
         gap: 15px;
@@ -297,19 +379,265 @@
     .filter-box {
         min-width: unset;
         width: 100%;
+        height: auto; /* Allow height to adjust on mobile stack */
+    }
+    
+    /* Search box reverts to vertical stack on mobile */
+    .search-input-group {
+        flex-direction: column; 
+        gap: 10px;
+        align-items: stretch;
     }
 
-    .summary-card,
-    .dashboard-chart-section,
-    .recent-latecomers-section {
-        padding: 20px;
+    .search-input-group input[type="text"],
+    .search-input-group .search-button-styled {
+        width: 100%;
+    }
+}
+
+
+/* ---------------------------------------------------------------- */
+/* --- 🚀 MODAL STYLES (Perfect Pop-up/Student Detail) --- */
+/* ---------------------------------------------------------------- */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; 
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-width: 90%;
+    width: 650px; 
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease-out; 
+}
+
+.modal-content.large-modal {
+    width: 750px; 
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 1.8em;
+    color: var(--color-primary, #2c3e50); 
+    margin: 0;
+    font-weight: 700;
+}
+
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s, transform 0.2s;
+    line-height: 1;
+}
+
+.modal-close-button:hover {
+    color: #333;
+    transform: rotate(90deg);
+}
+
+.modal-body-content {
+    overflow-y: auto; 
+    padding-right: 5px; 
+}
+
+/* --- Student Summary Section --- */
+
+.student-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+}
+
+.student-name-heading {
+    font-size: 1.5em;
+    color: #007bff; 
+    margin: 0;
+}
+
+.student-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.student-summary-grid p {
+    margin: 0;
+    font-size: 1.05em;
+}
+
+.student-summary-grid strong {
+    color: #555;
+    font-weight: 600;
+}
+
+/* --- History Table Section --- */
+
+.history-title {
+    font-size: 1.3em;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #444;
+    font-weight: 600;
+}
+
+.late-history-table-container {
+    max-height: 40vh; 
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.05); 
+}
+
+.late-history-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.late-history-table-container th,
+.late-history-table-container td {
+    padding: 10px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.late-history-table-container thead {
+    position: sticky;
+    top: 0;
+    background-color: #eef; 
+    z-index: 10;
+}
+
+.late-history-table-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.late-history-table-container tbody tr:nth-child(even) {
+    background-color: #fcfdff; 
+}
+
+.no-data-message-centered {
+    text-align: center;
+    padding: 30px;
+    font-size: 1.1em;
+    color: #999;
+}
+
+
+/* --- PDF Button in Modal (Blue Primary Button) --- */
+.download-pdf-button-modal {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+.download-pdf-button-modal:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .modal-content.large-modal {
+        width: 95%; 
     }
 
-    .card-value {
-        font-size: 2.5rem;
+    .student-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
+}
 
-    .section-title {
-        font-size: 1.3rem;
+/* ---------------------------------------------------------------- */
+/* 💾 CRITICAL FIX: PRINT/PDF OPTIMIZATION FOR HTML2CANVAS */
+/* ---------------------------------------------------------------- */
+@media print {
+    /* 1. Ensure the modal content expands fully for capture */
+    .modal-overlay {
+        position: static !important;
+        background: none !important;
+        display: block !important;
+    }
+    .modal-content {
+        /* Set everything to allow content to flow naturally */
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        padding: 20px !important;
+    }
+    /* 2. Ensure history table is fully visible (NO SCROLLBAR) */
+    .modal-body-content {
+        overflow-y: visible !important;
+    }
+    .late-history-table-container {
+        max-height: none !important;
+        overflow-y: visible !important;
+        border: 1px solid #ddd !important;
+    }
+    /* 3. Ensure the history table header is not sticky */
+    .late-history-table-container thead {
+        position: static !important;
+    }
+    /* 4. Simplify grid layout for print for consistency */
+    .student-summary-grid {
+        grid-template-columns: 1fr !important;
+        gap: 5px !important;
+        padding: 10px !important;
+    }
+    /* 5. Hide the Download button within the print view itself */
+    .download-pdf-button-modal {
+        display: none !important; 
     }
 }
